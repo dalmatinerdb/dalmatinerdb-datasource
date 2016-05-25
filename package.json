@@ -1,0 +1,42 @@
+{
+  "name": "dalmatinerdb-datasource",
+  "version": "0.1.0",
+  "description": "\"DalamtinerDB datasource for Grafana'",
+  "main": "index.js",
+  "scripts": {
+    "prepublish": "grunt",
+    "test": "grunt mochaTest",
+    "watch": "grunt watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dalmatinerdb/dalmatinerdb-datasource.git"
+  },
+  "keywords": [
+    "grafana",
+    "dalmatinerdb",
+    "datasource"
+  ],
+  "author": "Tomasz Szarstuk <szarsti@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dalmatinerdb/dalmatinerdb-datasource/issues"
+  },
+  "homepage": "https://github.com/dalmatinerdb/dalmatinerdb-datasource#readme",
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-plugin-transform-es2015-for-of": "^6.8.0",
+    "babel-plugin-transform-es2015-modules-systemjs": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "grunt": "^1.0.1",
+    "grunt-babel": "^6.0.0",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-mocha-test": "^0.12.7",
+    "load-grunt-tasks": "^3.5.0",
+    "lodash": "^4.13.1",
+    "mocha": "^2.5.3",
+    "moment": "^2.13.0"
+  }
+}
