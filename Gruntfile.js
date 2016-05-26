@@ -24,7 +24,7 @@ module.exports = function(grunt) {
       all: {
         files: ['src/**/*', 'test/*.js', 'plugin.json'],
         tasks: ['default'],
-        options: {spawn: true}
+        options: {spawn: false}
       }
     },
 
@@ -50,7 +50,7 @@ module.exports = function(grunt) {
           cwd: '.',
           expand: true,
           flatten: true,
-          src: ['src/*.js', 'test/*.js'],
+          src: ['src/datasource.js', 'test/*.js'],
           dest: '.build/test',
           ext:'.js'
         }]
@@ -60,7 +60,8 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
-          reporter: 'spec'
+          reporter: 'spec',
+          clearRequireCache: true
         },
         src: ['.build/test/*_spec.js']
       }
