@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
 
@@ -5,15 +6,23 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   constructor($scope, $injector, uiSegmentSrv) {
     super($scope, $injector);
-
     this.scope = $scope;
     this.uiSegmentSrv = uiSegmentSrv;
-    this.target.collection = this.target.collection || 'choose collection';
-    this.target.metric = this.target.metric || 'choose metric';
+    this.target.collection = this.target.collection || 'select collection';
+    this.target.metric = this.target.metric || [];
+
+    this.metricSegments = _.map(this.target.metric, (part) => {
+      return this.uiSegmentSrv.newSegment({value: part});
+    }).concat([
+      this.uiSegmentSrv.newSegment({value: '...'})
+    ]);
   }
 
-  onChange(Arg) {
-    this.panelCtrl.refresh();
+  onMetricSegmentChange(segment, index) {
+    this.metricSegments.splice(index + 1, this.metricSegments.length - 2,
+                               this.uiSegmentSrv.newSegment({value: '...'}));
+    this.target.metric = _.map(this.metricSegments.slice(0, -1), 'value');
+    this.refresh();
   }
 
   getCollapsedText() {
@@ -25,9 +34,10 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
       .then(this.uiSegmentSrv.transformToSegments(false));
   }
 
-  getMetrics() {
-    return this.datasource.getMetrics(this.target)
-      .then(this.uiSegmentSrv.transformToSegments(false));
+  getMetrics(index) {
+    var prefix = _.map(this.metricSegments.slice(0, index), 'value');
+    return this.datasource.getMetrics(this.target, prefix)
+      .then(this.uiSegmentSrv.transformToSegments(true));
   }
 };
 

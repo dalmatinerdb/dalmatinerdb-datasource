@@ -1,3 +1,4 @@
+import _ from "lodash";
 import moment from "moment";
 
 
@@ -7,7 +8,6 @@ export class DalmatinerDatasource {
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
-    this.q = $q;
     this.srv = backendSrv;
   }
 
@@ -19,6 +19,7 @@ export class DalmatinerDatasource {
   query(options) {
     var query = this.getQuery(options),
         path = '/?q=' + encodeURIComponent(query);
+    console.log('Running query: ' + query);
     return this._request(path, {accept: 'application/json'})
       .then(decode_series);
   }
@@ -42,10 +43,10 @@ export class DalmatinerDatasource {
     
     if (targets.length <= 0 ||
         fields.collection == 'choose collection' ||
-        fields.metric == 'choose collection') {
+        fields.metric.length <= 0) {
       return this.q.when([]);
     }
-    return "SELECT '" + fields.metric.replace(/\./g, "'.'") + "'" +
+    return "SELECT '" + fields.metric.join("'.'") + "'" +
       " IN '" + fields.collection + "'" +
       " BEFORE \"" + ending + "\"" +
       " FOR " + duration + "s";
@@ -61,21 +62,29 @@ export class DalmatinerDatasource {
                  
   getCollections() {
     return this._request('/collections')
-      .then(decode_list);
+      .then(decodeList);
   }
 
-  getMetrics(target) {
+  getMetrics(target, prefix = []) {
     var {collection} = target;
     return this._request('/collections/' + collection + '/metrics')
-      .then(decode_metrics);
+      .then(decodeMetrics)
+      .then(function(root) {
+        var n = root;
+        for (let p of prefix) {
+          n = n.children[p];
+          if (!n) return [];
+        }
+        return _.values(n.children);
+      });
   }
 
   /*
    * Internal methods
    */
+
   _request(path, headers = {}) {
     return this.srv.datasourceRequest({url: this.url + path, headers: headers});
-                                                                                     
   }
 };
 
@@ -87,12 +96,12 @@ function decode_series(res) {
   return {data: (d || []).map(({n, v, r}) => {
     return {
       target: n,
-      datapoints: timestamp_points(v, start, r)
+      datapoints: timestampPoints(v, start, r)
     };
   })};
 }
 
-function timestamp_points(values, start, increment) {
+function timestampPoints(values, start, increment) {
   var r = new Array(values.length);
   for (var i = 0; i < values.length; i++) {
     r[i] = [values[i], start + (i * increment)];
@@ -100,14 +109,27 @@ function timestamp_points(values, start, increment) {
   return r;
 }
 
-function decode_list(res) {
+function decodeList(res) {
   return res.data.map((item) => {
     return {text: item, value: item};
   });
 }
 
-function decode_metrics(res) {
-  return res.data.map(({key, parts}) => {
-    return {text: parts.join('.'), value: key};
-  });
+function decodeMetrics(res) {
+  var root = {children: {}};
+
+  for (let {key, parts} of res.data) {
+    let n = root;
+    for (let part of parts) {
+      if (! n.children[part]) {
+        n.children[part] = {
+          text: part,
+          children: {}
+        };
+      }
+      n = n.children[part];
+    }
+    n.value = key;
+  }
+  return root;
 }

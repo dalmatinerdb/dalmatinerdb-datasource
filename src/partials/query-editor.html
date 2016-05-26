@@ -17,11 +17,12 @@
   <div class="gf-form-inline">
     <div class="gf-form">
 	  <label class="gf-form-label query-keyword">SELECT</label>
-      <metric-segment-model css-class="tight-form-item-xxlarge"
-                            property="ctrl.target.metric"
-                            get-options="ctrl.getMetrics()"
-                            on-change="ctrl.onChange()">
-      </metric-segment-model>
+      <div ng-repeat="segment in ctrl.metricSegments" role="meuitem">
+        <metric-segment segment="segment"
+                        get-options="ctrl.getMetrics($index)"
+                        on-change="ctrl.onMetricSegmentChange(segment, $index)">
+        </metric-segment>
+      </div>
     </div>
     <div class="gf-form gf-form--grow">
 	  <div class="gf-form-label gf-form-label--grow"></div>

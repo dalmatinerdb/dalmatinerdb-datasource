@@ -4,7 +4,7 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
 
-    clean: ["dist"],
+    clean: ["dist", ".build"],
 
     copy: {
       statics: {
@@ -22,9 +22,9 @@ module.exports = function(grunt) {
 
     watch: {
       all: {
-        files: ['src/**/*', 'plugin.json'],
+        files: ['src/**/*', 'test/*.js', 'plugin.json'],
         tasks: ['default'],
-        options: {spawn: false}
+        options: {spawn: true}
       }
     },
 
@@ -44,18 +44,30 @@ module.exports = function(grunt) {
           dest: 'dist',
           ext:'.js'
         }]
+      },
+      test: {
+        files: [{
+          cwd: '.',
+          expand: true,
+          flatten: true,
+          src: ['src/*.js', 'test/*.js'],
+          dest: '.build/test',
+          ext:'.js'
+        }]
+      }
+    },
+
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'spec'
+        },
+        src: ['.build/test/*_spec.js']
       }
     }
-
-    //mochaTest: {
-    //  test: {
-    //    options: {
-    //      reporter: 'spec'
-    //    },
-    //    src: ['dist/test/spec/test-main.js', 'dist/test/spec/*_spec.js']
-    //  }
-    //}
   });
 
-  grunt.registerTask('default', ['clean', 'copy:statics', 'copy:meta', 'babel']);
+  grunt.registerTask('test', ['babel:test', 'mochaTest']);
+  grunt.registerTask('build', ['copy:statics', 'copy:meta', 'test', 'babel:dist']);
+  grunt.registerTask('default', ['clean', 'build']);
 };
