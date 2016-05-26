@@ -41,4 +41,4 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   }
 };
 
-DalmatinerQueryCtrl.templateUrl = 'partials/query-editor.html';
+DalmatinerQueryCtrl.templateUrl = 'partials/query.editor.html';
