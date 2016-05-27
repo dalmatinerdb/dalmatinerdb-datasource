@@ -12,15 +12,19 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.target.metric = this.target.metric || [];
 
     this.metricSegments = _.map(this.target.metric, (part) => {
-      return this.uiSegmentSrv.newSegment({value: part});
+      return this._newTextSegment(part);
     }).concat([
-      this.uiSegmentSrv.newSegment({value: '...'})
+      this._newPlaceholderSegment()
     ]);
   }
 
+  /**
+   * Methods used by view
+   * -------------------- */
+
   onMetricSegmentChange(segment, index) {
     this.metricSegments.splice(index + 1, this.metricSegments.length - 2,
-                               this.uiSegmentSrv.newSegment({value: '...'}));
+                               this._newPlaceholderSegment());
     this.target.metric = _.map(this.metricSegments.slice(0, -1), 'value');
     this.refresh();
   }
@@ -31,13 +35,36 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   getCollections() {
     return this.datasource.getCollections()
-      .then(this.uiSegmentSrv.transformToSegments(false));
+      .then(this._convertToSegments());
   }
 
   getMetrics(index) {
     var prefix = _.map(this.metricSegments.slice(0, index), 'value');
     return this.datasource.getMetrics(this.target, prefix)
-      .then(this.uiSegmentSrv.transformToSegments(true));
+      .then(this._convertToSegments());
+  }
+
+  /**
+   * internal utilities
+   * ------------------ */
+
+  _newTextSegment(text) {
+    return this.uiSegmentSrv.newSegment({value: text});
+  }
+
+  _newPlaceholderSegment() {
+    return this.uiSegmentSrv.newSegment({value: '...', fake:true});
+  }
+
+  _newSegment({text}) {
+    return this._newTextSegment(text);
+  }
+
+  _convertToSegments() {
+    var fn = this._newSegment.bind(this);
+    return function(Objs) {
+      return _.map(Objs, fn);
+    };
   }
 };
 

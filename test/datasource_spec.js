@@ -28,7 +28,58 @@ describe('DalmatinerDatasource', function() {
       expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
     }); 
   });
-  
+
+  describe('#getCollections', function() {
+
+    givenDatasource()
+      .respondingTo('/collections')
+      .with(["org1", "org2"])
+      .then(function(ds) {
+        it('should return list of collections', function(done) {
+          ds.getCollections()
+            .then(function (metrics) {
+              expect(metrics).to.be.deep.equal([{text: "org1"}, {text: "org2"}]);
+              done();
+            }).catch(done);
+        });
+      });
+  });
+
+  describe('#getTags', function() {
+
+    givenDatasource()
+      .respondingTo('/collections/myorg/namespaces')
+      .with(["tag", "", "custom", "ddb"])
+      .respondingTo('/collections/myorg/namespaces/tag/tags')
+      .with(["all", "prod", "stag"])
+      .respondingTo('/collections/myorg/namespaces//tags')
+      .with(["region", "datacenter"])
+      .respondingTo('/collections/myorg/namespaces/custom/tags')
+      .with(["kernel"])    
+      .then(function(ds, report) {
+        it('should return list of tags with namespaces', function(done) {
+          ds.getTags({collection: 'myorg'})
+            .then(function (tags) {
+              var names = _.map(tags, 'text');
+              expect(names).to.be.deep.equal([
+                "tag:all", "tag:prod", "tag:stag", "region", "datacenter", "custom:kernel"
+              ]);
+              done();
+            }).catch(report(done));
+        });
+
+        it('should produce object having name-space and tag pair as value', function(done) {
+          ds.getTags({collection: 'myorg'})
+            .then(function (tags) {
+              var prod = _.find(tags, function(t) { return t.text == "tag:prod"; });
+              expect(prod.value).to.be.deep.equal(["tag", "prod"]);
+              done();
+            }).catch(report(done));
+        });
+
+      });
+  });
+
   describe('#getMetrics', function(){
 
     givenDatasource()
@@ -37,7 +88,7 @@ describe('DalmatinerDatasource', function() {
              {parts: ["base", "cpu", "user"], key: "k2"},
              {parts: ["base", "cpu", "system"], key: "k2"},
              {parts: ["apache", "status"], key: "k3"}])
-      .ensureThat(function(ds) {
+      .then(function(ds) {
 
         it('should return top level of paths when queried with empty prefix', function(done) {
           ds.getMetrics({collection: 'dataloop'})
@@ -56,29 +107,43 @@ describe('DalmatinerDatasource', function() {
               done();
             }).catch(done);
         });
-});
+      });
   });
 });
 
+function wrong_call(arg) {
+  throw new Error("Unexpected call: arg");
+}
 
 function givenDatasource() {
-  var settings = {url: ''},
-      mock = sinon.stub(),
-      srv = {datasourceRequest: mock},
-      ds = new DalmatinerDatasource(settings, null, srv);
+  var stubErr = new Error("Invalid request"),
+      stub = sinon.stub().throws(stubErr),
+      expectation = null,
+      settings = {url: ''},
+      srv = {datasourceRequest: stub},
+      ds = new DalmatinerDatasource(settings, Promise, srv);
   
   return {
     respondingTo: function (path) {
-      mock.withArgs(sinon.match.has('url', path));
+      expectation = stub.withArgs(sinon.match.has('url', path));
       return this;
     },
     with: function (data) {
       var p = Promise.resolve({data: data});
-      mock.returns(p);
+      expectation.returns(p);
       return this;
     },
-    ensureThat: function (fun) {
-      fun(ds);
+    then: function (fun) {
+      function report(done) {
+        return function cb(err) {
+          console.log('Error reporter triggered');
+          if (err === stubErr) {          
+            err = new Error(stub.lastCall);
+          }
+          done(err);
+        };
+      }
+      fun(ds, report);
     }
   };
 }

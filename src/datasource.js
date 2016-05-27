@@ -5,6 +5,7 @@ import moment from "moment";
 export class DalmatinerDatasource {
 
   constructor(instanceSettings, $q, backendSrv) {
+    this.$q = $q;
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
@@ -65,8 +66,27 @@ export class DalmatinerDatasource {
       .then(decodeList);
   }
 
-  getMetrics(target, prefix = []) {
-    var {collection} = target;
+  getTags({collection}) {
+    return this._request(`/collections/${collection}/namespaces`)
+      .then((res) => {
+        return this.$q.all(
+          _.reduce(res.data, (acc, ns) => {
+            if (ns != 'ddb') {
+              acc.push(this.getNamespaceTags({collection, namespace: ns}));
+            }
+            return acc;
+          }, [])
+        );
+      })
+      .then(_.flatten);
+  }
+
+  getNamespaceTags({collection, namespace}) {
+    return this._request(`/collections/${collection}/namespaces/${namespace}/tags`)
+      .then(_.partial(decodeTags, namespace));
+  }
+
+  getMetrics({collection}, prefix = []) {
     return this._request('/collections/' + collection + '/metrics')
       .then(decodeMetrics)
       .then(function(root) {
@@ -110,8 +130,8 @@ function timestampPoints(values, start, increment) {
 }
 
 function decodeList(res) {
-  return res.data.map((item) => {
-    return {text: item, value: item};
+  return _.map(res.data, function (item) {
+    return {text: item};
   });
 }
 
@@ -132,4 +152,12 @@ function decodeMetrics(res) {
     n.value = key;
   }
   return root;
+}
+
+function decodeTags(ns, res) {
+  return _.map(res.data, function (tag) {
+    return {
+      text: (ns == '') ? tag : `${ns}:${tag}`,
+      value: [ns, tag]};
+  });
 }
