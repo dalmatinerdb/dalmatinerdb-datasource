@@ -2,12 +2,24 @@
 
   <div class="gf-form-inline">
 	<div class="gf-form">
-      <label class="gf-form-label query-keyword width-7">FROM</label>
-      <metric-segment-model css-class="tight-form-item-xxlarge"
-                            property="ctrl.target.collection"
-                            get-options="ctrl.getCollections()"
-                            on-change="ctrl.onChange()">
-      </metric-segment-model>
+      <label class="gf-form-label query-keyword">FROM</label>
+      <metric-segment segment="ctrl.target.collection"
+                      css-class="tight-form-item-xxlarge"
+                      get-options="ctrl.getCollections()"
+                      on-change="ctrl.refresh()" />
+    </div>
+    <div class="gf-form">
+	  <label class="gf-form-label query-keyword">WHERE</label>
+    </div>
+    <div class="gf-form" ng-repeat="segment in ctrl.target.tags">
+	  <metric-segment segment="segment"
+                      get-options="ctrl.getTagOptionsAt($index)"
+                      on-change="ctrl.refresh()" />
+	</div>
+    <div class="gf-form">
+      <metric-segment segment="ctrl.new_tag"
+                      get-options="ctrl.getTagKeys()"
+                      on-change="ctrl.addTag()" />
     </div>
     <div class="gf-form gf-form--grow">
 	  <div class="gf-form-label gf-form-label--grow"></div>
@@ -17,27 +29,21 @@
   <div class="gf-form-inline">
     <div class="gf-form">
 	  <label class="gf-form-label query-keyword">SELECT</label>
-      <div ng-repeat="segment in ctrl.metricSegments" role="meuitem">
+      <div ng-repeat="segment in ctrl.target.metric" role="meuitem">
         <metric-segment segment="segment"
-                        get-options="ctrl.getMetrics($index)"
-                        on-change="ctrl.onMetricSegmentChange(segment, $index)">
+                        get-options="ctrl.getMetricOptionsAt($index)"
+                        on-change="ctrl.onMetricSegmentChange($index)">
         </metric-segment>
       </div>
     </div>
-    <div class="gf-form gf-form--grow">
-	  <div class="gf-form-label gf-form-label--grow"></div>
-	</div>
-  </div>
-
-  <!--
-  <div class="gf-form-inline">
     <div class="gf-form">
-	  <label class="gf-form-label query-keyword">WHERE</label>
-    </div>
+      <metric-segment segment="ctrl.new_metric_part"
+                      get-options="ctrl.getMetricOptionsAt(-1)"
+                      on-change="ctrl.addMetricPart()" />
+    </div>     
     <div class="gf-form gf-form--grow">
 	  <div class="gf-form-label gf-form-label--grow"></div>
 	</div>
   </div>
-  -->
 
 </query-editor-row>

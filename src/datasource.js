@@ -1,5 +1,5 @@
 import _ from "lodash";
-import moment from "moment";
+import {DalmatinerQuery} from "./query";
 
 
 export class DalmatinerDatasource {
@@ -18,10 +18,14 @@ export class DalmatinerDatasource {
 
   // used by panels to get data
   query(options) {
-    var query = this.getQuery(options),
-        path = '/?q=' + encodeURIComponent(query);
+    var query = this.getQuery(options);
+
+    if (! query)
+      return this.$q.resolve({data: []});
+
     console.log('Running query: ' + query);
-    return this._request(path, {accept: 'application/json'})
+    return this._request('/?q=' + encodeURIComponent(query),
+                         {accept: 'application/json'})
       .then(decode_series);
   }
 
@@ -38,27 +42,30 @@ export class DalmatinerDatasource {
   // get query string
   getQuery(options) {
     var {range, interval, targets} = options,
-        ending = range.to.utc().format("YYYY-MM-DD HH:mm:ss"),
-        duration = Math.round((range.to - range.from) / 1000),
-        fields = targets[0];
-    
+        fields = targets[0],
+        query = new DalmatinerQuery();
+
     if (targets.length <= 0 ||
-        fields.collection == 'choose collection' ||
-        fields.metric.length <= 0) {
-      return this.q.when([]);
-    }
-    return "SELECT '" + fields.metric.join("'.'") + "'" +
-      " IN '" + fields.collection + "'" +
-      " BEFORE \"" + ending + "\"" +
-      " FOR " + duration + "s";
+        (! fields.collection.value) ||
+        (fields.metric.length <= 0))
+      return null;
+
+    query
+      .from(fields.collection)
+      .select(fields.metric)
+      .beginningAt(range.from)
+      .endingAt(range.to)
+      .in(interval);
+
+    return query.toString();
   }
 
-  getSimplifiedQuery({collection, metric}) {
-    if (collection == 'choose collection' ||
-        metric == 'choose metric') {
-      return 'incomplete';
-    }
-    return 'SELECT ' + metric + ' IN ' + collection;
+  // get simplified query string that will be displayed when form is collapsed
+  getSimplifiedQuery(target) {
+    return new DalmatinerQuery()
+      .from(target.collection)
+      .select(target.metric)
+      .toUserString();
   }
                  
   getCollections() {
@@ -66,13 +73,13 @@ export class DalmatinerDatasource {
       .then(decodeList);
   }
 
-  getTags({collection}) {
+  getTagKeys({collection}) {
     return this._request(`/collections/${collection}/namespaces`)
       .then((res) => {
         return this.$q.all(
           _.reduce(res.data, (acc, ns) => {
             if (ns != 'ddb') {
-              acc.push(this.getNamespaceTags({collection, namespace: ns}));
+              acc.push(this.getTagNamespaceKeys({collection, namespace: ns}));
             }
             return acc;
           }, [])
@@ -81,13 +88,17 @@ export class DalmatinerDatasource {
       .then(_.flatten);
   }
 
-  getNamespaceTags({collection, namespace}) {
+  getTagNamespaceKeys({collection, namespace}) {
     return this._request(`/collections/${collection}/namespaces/${namespace}/tags`)
       .then(_.partial(decodeTags, namespace));
   }
 
+  getTagValues({collection}, [namespace, key]) {
+    console.log('Supposed to get tag values: ', namespace, key);
+  }
+
   getMetrics({collection}, prefix = []) {
-    return this._request('/collections/' + collection + '/metrics')
+    return this._request('/collections/' + collection.value + '/metrics')
       .then(decodeMetrics)
       .then(function(root) {
         var n = root;
@@ -131,7 +142,7 @@ function timestampPoints(values, start, increment) {
 
 function decodeList(res) {
   return _.map(res.data, function (item) {
-    return {text: item};
+    return {value: item, html: item};
   });
 }
 
@@ -143,13 +154,13 @@ function decodeMetrics(res) {
     for (let part of parts) {
       if (! n.children[part]) {
         n.children[part] = {
-          text: part,
+          value: part,
+          html: part,
           children: {}
         };
       }
       n = n.children[part];
     }
-    n.value = key;
   }
   return root;
 }
@@ -157,7 +168,7 @@ function decodeMetrics(res) {
 function decodeTags(ns, res) {
   return _.map(res.data, function (tag) {
     return {
-      text: (ns == '') ? tag : `${ns}:${tag}`,
-      value: [ns, tag]};
+      html: (ns == '') ? tag : `${ns}:${tag}`,
+      value: JSON.stringify([ns, tag])};
   });
 }

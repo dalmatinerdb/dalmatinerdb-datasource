@@ -50,7 +50,7 @@ module.exports = function(grunt) {
           cwd: '.',
           expand: true,
           flatten: true,
-          src: ['src/datasource.js', 'test/*.js'],
+          src: ['src/datasource.js', 'src/query.js', 'test/*.js'],
           dest: '.build/test',
           ext:'.js'
         }]
