@@ -95,22 +95,20 @@ describe('DalmatinerDatasource', function() {
       });
   });
 
-  describe('#getScopeOptions', function() {
+  describe('#getTagValues', function() {
 
     givenDatasource()
-      .respondingTo('/collections/myorg/namespaces')
-      .with(["tag", "", "ddb"])
-      .respondingTo('/collections/myorg/namespaces/tag/tags')
-      .with(["all", "prod", "stag"])
-      .respondingTo('/collections/myorg/namespaces//tags')
-      .with(["region"])
+      .respondingTo('/collections/myorg/namespaces/dl/tags/source/values')
+      .with(["linload1", "linload2", "linload3"])
       .then(function(ds, report) {
 
-        it('should give tags selection when scope is empty', function(done) {
-          ds.getTagKeys({collection: 'myorg'})
-            .then(function (tags) {
-              var names = _.map(tags, 'html');
-              expect(names).to.be.deep.equal(["tag:all", "tag:prod", "tag:stag", "region"]);
+        it('should return list of tag values', function(done) {
+          ds.getTagValues({collection: 'myorg'}, ['dl', 'source'])
+            .then(function (list) {
+              var values = _.map(list, 'html');
+              expect(values).to.be.deep.equal([
+                "linload1", "linload2", "linload3"
+              ]);
               done();
             }).catch(report(done));
         });

@@ -67,7 +67,7 @@ export class DalmatinerDatasource {
       .select(target.metric)
       .toUserString();
   }
-                 
+
   getCollections() {
     return this._request('/collections')
       .then(decodeList);
@@ -94,7 +94,9 @@ export class DalmatinerDatasource {
   }
 
   getTagValues({collection}, [namespace, key]) {
-    console.log('Supposed to get tag values: ', namespace, key);
+    var p = `/collections/${collection}/namespaces/${namespace}/tags/${key}/values`;
+    return this._request(p)
+      .then(decodeList);
   }
 
   getMetrics({collection}, prefix = []) {
