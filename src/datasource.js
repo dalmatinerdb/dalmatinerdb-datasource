@@ -24,8 +24,7 @@ export class DalmatinerDatasource {
       return this.$q.resolve({data: []});
 
     console.log('Running query: ' + query);
-    return this._request('/?q=' + encodeURIComponent(query),
-                         {accept: 'application/json'})
+    return this._request('/?q=' + encodeURIComponent(query))
       .then(decode_series);
   }
 
@@ -74,12 +73,13 @@ export class DalmatinerDatasource {
   }
 
   getTagKeys({collection}) {
-    return this._request(`/collections/${collection}/namespaces`)
+    var c = collection.value;
+    return this._request(`/collections/${c}/namespaces`)
       .then((res) => {
         return this.$q.all(
           _.reduce(res.data, (acc, ns) => {
             if (ns != 'ddb') {
-              acc.push(this.getTagNamespaceKeys({collection, namespace: ns}));
+              acc.push(this.getTagNamespaceKeys({collection}, ns));
             }
             return acc;
           }, [])
@@ -88,13 +88,15 @@ export class DalmatinerDatasource {
       .then(_.flatten);
   }
 
-  getTagNamespaceKeys({collection, namespace}) {
-    return this._request(`/collections/${collection}/namespaces/${namespace}/tags`)
+  getTagNamespaceKeys({collection}, namespace) {
+    var c = collection.value;
+    return this._request(`/collections/${c}/namespaces/${namespace}/tags`)
       .then(_.partial(decodeTags, namespace));
   }
 
   getTagValues({collection}, [namespace, key]) {
-    var p = `/collections/${collection}/namespaces/${namespace}/tags/${key}/values`;
+    var c = collection.value,
+        p = `/collections/${c}/namespaces/${namespace}/tags/${key}/values`;
     return this._request(p)
       .then(decodeList);
   }
@@ -116,7 +118,7 @@ export class DalmatinerDatasource {
    * Internal methods
    */
 
-  _request(path, headers = {}) {
+  _request(path, headers = {Accept: 'application/json'}) {
     return this.srv.datasourceRequest({url: this.url + path, headers: headers});
   }
 };

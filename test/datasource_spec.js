@@ -73,7 +73,7 @@ describe('DalmatinerDatasource', function() {
       .then(function(ds, report) {
 
         it('should return list of tags with namespaces', function(done) {
-          ds.getTagKeys({collection: 'myorg'})
+          ds.getTagKeys({collection: {value: 'myorg'}})
             .then(function (tags) {
               var names = _.map(tags, 'html');
               expect(names).to.be.deep.equal([
@@ -84,7 +84,7 @@ describe('DalmatinerDatasource', function() {
         });
 
         it('should produce object having name-space and tag pair as value', function(done) {
-          ds.getTagKeys({collection: 'myorg'})
+          ds.getTagKeys({collection: {value: 'myorg'}})
             .then(function (tags) {
               var prod = _.find(tags, function(t) { return t.html == 'tag:prod'; });
               expect(prod.value).to.be.deep.equal('["tag","prod"]');
@@ -103,7 +103,7 @@ describe('DalmatinerDatasource', function() {
       .then(function(ds, report) {
 
         it('should return list of tag values', function(done) {
-          ds.getTagValues({collection: 'myorg'}, ['dl', 'source'])
+          ds.getTagValues({collection: {value: 'myorg'}}, ['dl', 'source'])
             .then(function (list) {
               var values = _.map(list, 'html');
               expect(values).to.be.deep.equal([
@@ -114,7 +114,7 @@ describe('DalmatinerDatasource', function() {
         });
       });
   });
-  
+
   describe('#getMetrics', function(){
 
     givenDatasource()

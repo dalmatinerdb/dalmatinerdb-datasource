@@ -31,45 +31,35 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   }
 
   getTagKeys() {
-    //TODO: switch to live values once service API supports it
-    //return this.datasource.getTagKeys(this.target);
-    return Promise.resolve([
-      {type: 'key', html: 'tag:production', value: '["tag","production"]'},
-      {type: 'key', html: 'tag:web', value: '["tag","web"]'},
-      {type: 'key', html: 'region', value: '["","region"]'}
-    ]);
+    return this.datasource.getTagKeys(this.target);
   }
 
   getTagValues(tagKey) {
-    //TODO: switch to live values once service API supports it
-    //return this.datasource.getTagValues(this.target, tagKey);
-    return Promise.resolve([
-      {type: 'value', value: '""', html: '""'},
-      {type: 'value', value: 'EU', html: 'EU'},
-      {type: 'value', value: 'US', html: 'US'}
-    ]);
+    return this.datasource.getTagValues(this.target, tagKey);
   }
 
   // Get list of supported tag join conditions, first will be used as default
   getTagConditions() {
-    return [this.uiSegmentSrv.newCondition('AND'),
-            this.uiSegmentSrv.newCondition('OR')];
+    return [this._newCondition('AND'),
+            this._newCondition('OR')];
   }
 
   // Get list of supported tag matching operators, first will be used as default
   getTagOperators() {
-    return [this.uiSegmentSrv.newOperator('=')];
+    return [this._newOperator('=')];
   }
 
   getTagOptionsAt(index) {
     var seg = this.target.tags[index],
-        {type, value} = seg;
+        {type} = seg,
+        tagKeyValue;
 
     switch (type) {
     case ('key'):
       return this.getTagKeys();
     case ('value'):
-      return this.getTagValues(JSON.parse(value));
+      tagKeyValue = this.target.tags[index - 2].value;
+      return this.getTagValues(JSON.parse(tagKeyValue));
     case ('condition'):
       return this.$q.resolve(this.getTagConditions());
     case ('operator'):
@@ -115,6 +105,20 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   onMetricSegmentChange(segment, index) {
     this.target.metric.splice(index + 1);
     this.refresh();
+  }
+
+  /**
+   * Internal function
+   */
+
+  _newCondition(value) {
+    return this.uiSegmentSrv.newSegment({value, html: value, type: 'condition',
+                                         cssClass: 'query-keyword'});
+  }
+
+  _newOperator(value) {
+    return this.uiSegmentSrv.newSegment({value, html: value, type: 'operator',
+                                         cssClass: 'query-segment-operator'});
   }
 };
 
