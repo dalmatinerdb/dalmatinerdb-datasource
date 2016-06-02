@@ -35,10 +35,26 @@ class DalmatinerQueryCondition {
 }
 
 
+class DalmatinerQueryFun {
+  constructor(fun, vars, args) {
+    this.fun = fun;
+    this.vars = vars;
+    this.args = args;
+  }
+
+  toString() {
+    var astr = this.args.join(function() {
+      // TODO: implement me
+    });
+    return `${this.fun}()`;
+  }
+}
+
 export class DalmatinerQuery {
 
   constructor() {
     this.variables = {};
+    this.selects = [];
   }
 
   static equals(a, b) {
@@ -54,6 +70,8 @@ export class DalmatinerQuery {
   }
   
   select(m) {
+    var selector = {toString: this._encodeSelector.bind(this)};
+    this.active = this.selects.push(selector) - 1;
     this.metric = _.map(m, function (mpart) {
       return mpart.value ? mpart.value : mpart.toString();
     });
@@ -83,6 +101,15 @@ export class DalmatinerQuery {
     return this;
   }
 
+  apply(fun, args = []) {
+    var selector = this.selector[this.active],
+        fargs = [selector].concat(args),
+        f = new DalmatinerQueryFun(fun, this.variables, args);
+
+    this.selector[this.active] = f;
+    return this;
+  }
+
   /**
    * Reading function
    */
@@ -92,18 +119,23 @@ export class DalmatinerQuery {
   }
   
   toUserString() {
+    return 'SELECT ' + this.selects.join(', ');
+  }
+
+  /**
+   * Internal methods
+   */
+
+  _encodeSelector() {
     var metric = this._encodeMetric(),
         collection = this._encodeCollection(),
-        str = `SELECT ${metric} IN ${collection}`;
+        str = `${metric} IN ${collection}`;
     if (this.condition) {
       str += ` WHERE ${this.condition}`;
     }
     return str;
   }
 
-  /**
-   * Internal methods
-   */
   _encodeCollection() {
     return `'${this.collection}'`;
   }
