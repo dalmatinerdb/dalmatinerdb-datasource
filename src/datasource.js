@@ -41,29 +41,23 @@ export class DalmatinerDatasource {
   // get query string
   getQuery(options) {
     var {range, interval, targets} = options,
-        fields = targets[0],
-        query = new DalmatinerQuery();
+        fields = targets[0];
 
     if (targets.length <= 0 ||
         (! fields.collection.value) ||
         (fields.metric.length <= 0))
       return null;
 
-    query
-      .from(fields.collection)
-      .select(fields.metric)
+    return buildQuery(fields)
       .beginningAt(range.from)
       .endingAt(range.to)
-      .in(interval);
-
-    return query.toString();
+      .with('interval', interval)
+      .toString();
   }
 
   // get simplified query string that will be displayed when form is collapsed
   getSimplifiedQuery(target) {
-    return new DalmatinerQuery()
-      .from(target.collection)
-      .select(target.metric)
+    return buildQuery(target)
       .toUserString();
   }
 
@@ -175,4 +169,62 @@ function decodeTags(ns, res) {
       html: (ns == '') ? tag : `${ns}:${tag}`,
       value: JSON.stringify([ns, tag])};
   });
+}
+
+function buildQuery(fields) {
+  var q = new DalmatinerQuery()
+        .from(fields.collection)
+        .select(fields.metric);
+
+  if (fields.tags && fields.tags.length > 0) {
+    q.where(buildCondition(fields.tags));
+  }
+  return q;
+}
+
+function buildCondition(tags) {
+  var stack = [],
+      condition;
+
+  // First run is to expand all operators, leaving only condition objects and
+  // condition keywords left on stack
+  for (let i = 0, tag; i < tags.length; i++) {
+    tag = tags[i];
+    if (tag.type === 'value') {
+      let operator = stack.pop(),
+          key = stack.pop();
+      assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
+      assert(key.type === 'key', "Expected tag key, but got: " + key.type);
+      stack.push(DalmatinerQuery.equals(JSON.parse(key.value), tag.value));
+    } else {
+      stack.push(tags[i]);
+    }
+  }
+
+  // Now we iterate through stack to combine all conditions joining them by
+  // keyword
+  condition = stack.shift();
+  while (stack.length) {
+    let kwd = stack.shift(),
+        c = stack.shift();
+    assert(kwd.type === 'condition', "Expected condition keyword, but got: " + c);
+    switch (kwd.value) {
+    case('AND'):
+      condition = condition.and(c);
+      break;
+    case('OR'):
+      condition = condition.or(c);
+      break;
+    default:
+      throw new Error('Unexpected condition keyword: ' + kwd.value);
+    }
+  }
+
+  return condition;
+}
+
+function assert(condition, message) {
+  if (! condition) {
+    throw new Error(message);
+  }
 }

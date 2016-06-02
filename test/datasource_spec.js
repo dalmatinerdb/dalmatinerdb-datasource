@@ -16,7 +16,7 @@ describe('DalmatinerDatasource', function() {
   describe('#getQuery', function() {
     var ds = new DalmatinerDatasource({}, Promise, null);
 
-    it('should create a query for simple metric and collection only', function() {
+    it('should create a query for requested target fields', function() {
       var q = ds.getQuery({
         range: {
           from: moment("2016-01-10T10:20:00"),
@@ -32,13 +32,28 @@ describe('DalmatinerDatasource', function() {
   describe('#getSimplifiedQuery', function() {
     var ds = new DalmatinerDatasource({}, Promise, null);
 
-    it('should create a simplified query at least metric and collection', function() {
+    it('should create a simplified query for at least collection and metric', function() {
       var q = ds.getSimplifiedQuery({
         collection: {value: 'dataloop_org'},
         metric: [{value: 'base'}, {value: 'cpu'}]
       });
       expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org'");
-    }); 
+    });
+
+    it('should create a query, that include tags', function() {
+      var eq = {type: 'operator', value: '='},
+          empty = {type: 'value', value: ''},
+          q = ds.getSimplifiedQuery({
+            collection: {value: 'dataloop_org'},
+            metric: [{value: 'base'}, {value: 'cpu'}],
+            tags: [{type: "key", value: '["tag","production"]'}, eq, empty,
+                   {type: "condition", value: 'AND'},
+                   {type: "key", value: '["tag","web"]'}, eq, empty,
+                   {type: "condition", value: 'OR'},
+                   {type: "key", value: '["tag","staging"]'}, eq, empty]
+          });
+      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' WHERE tag:'production' = '' AND tag:'web' = '' OR tag:'staging' = ''");
+    });
   });
 
   describe('#getCollections', function() {

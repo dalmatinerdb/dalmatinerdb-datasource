@@ -2,9 +2,48 @@ import _ from "lodash";
 import moment from "moment";
 
 
+class DalmatinerQueryCondition {
+  constructor (op, ...args) {
+    this.op = op;
+    this.args = args;
+  }
+
+  and (other) {
+    return new DalmatinerQueryCondition('and', this, other);
+  }
+
+  or (other) {
+    return new DalmatinerQueryCondition('or', this, other);
+  }
+
+  toString() {
+    var ns, key, value, a, b;
+    switch (this.op) {
+    case ('eq'):
+      [[ns, key], value] = this.args;
+      return ns ? `${ns}:'${key}' = '${value}'` :
+        `'${key}' = '${value}'`;
+    case ('and'):
+      [a, b] = this.args;
+      return `${a} AND ${b}`;
+    case ('or'):
+      [a, b] = this.args;
+      return `${a} OR ${b}`;
+    }
+    return '';
+  }
+}
+
+
 export class DalmatinerQuery {
 
-  constructor() {}
+  constructor() {
+    this.variables = {};
+  }
+
+  static equals(a, b) {
+    return new DalmatinerQueryCondition('eq', a, b);
+  }
 
   /**
    * Chain-able setters
@@ -31,11 +70,19 @@ export class DalmatinerQuery {
     return this;
   }
 
-  in(i) {
-    this.internal = i;
+  with(name, value) {
+    this.variables[name] = value;
     return this;
   }
-  
+
+  where(condition) {
+    if (! condition instanceof DalmatinerQueryCondition) {
+      throw new Error("Invalid query condition");
+    }
+    this.condition = condition;
+    return this;
+  }
+
   /**
    * Reading function
    */
@@ -46,8 +93,12 @@ export class DalmatinerQuery {
   
   toUserString() {
     var metric = this._encodeMetric(),
-        collection = this._encodeCollection();
-    return `SELECT ${metric} IN ${collection}`;
+        collection = this._encodeCollection(),
+        str = `SELECT ${metric} IN ${collection}`;
+    if (this.condition) {
+      str += ` WHERE ${this.condition}`;
+    }
+    return str;
   }
 
   /**
