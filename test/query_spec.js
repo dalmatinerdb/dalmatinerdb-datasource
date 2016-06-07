@@ -18,6 +18,7 @@ describe('DalmatinerQuery', function() {
   });
   
   describe('#equals', function() {
+
     it('should build a condition with name-space', function() {
       var c = DalmatinerQuery.equals(['dl', 'source'], 'agent1'); 
       expect('' + c).to.be.equal("dl:'source' = 'agent1'");
@@ -38,6 +39,41 @@ describe('DalmatinerQuery', function() {
       var c = DalmatinerQuery.equals(['tag', 'production'], '')
             .or(DalmatinerQuery.equals(['tag', 'web'], ''));
       expect('' + c).to.be.equal("tag:'production' = '' OR tag:'web' = ''");
+    });
+  });
+
+  describe('#apply', function() {
+
+    it('should apply function on active selection', function() {
+      query.from('myorg')
+        .select(['base', 'network', 'eth0', 'sent'])
+        .apply('derivate');
+      expect(query.toUserString()).to.be
+        .equal("SELECT derivate('base'.'network'.'eth0'.'sent' IN 'myorg')");
+    });
+
+    it('should support function with extra argument', function() {
+      query.from('myorg')
+        .select(['base', 'cpu'])
+        .apply('avg', ['30s']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+    });
+
+    it('should expand variables in function arguments', function() {
+      query.from('myorg')
+        .select(['base', 'cpu'])
+        .with('interval', '30s')
+        .apply('avg', ['$interval']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+    });
+
+    it('should fail when variable is not defined', function() {
+      query.from('myorg')
+        .select(['base', 'cpu'])
+        .apply('avg', ['$interval']);
+      expect(query.toUserString).to.throw(Error);
     });
   });
 });

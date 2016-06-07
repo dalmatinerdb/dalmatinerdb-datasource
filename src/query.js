@@ -35,26 +35,37 @@ class DalmatinerQueryCondition {
 }
 
 
-class DalmatinerQueryFun {
-  constructor(fun, vars, args) {
+class DalmatinerFunction {
+  constructor(fun, args, vars) {
     this.fun = fun;
-    this.vars = vars;
     this.args = args;
+    this.vars = vars;
+    this._encodeArg = this._encodeArg.bind(this);
   }
 
   toString() {
-    var astr = this.args.join(function() {
-      // TODO: implement me
-    });
-    return `${this.fun}()`;
+    var args = this.args.map(this._encodeArg);
+    return `${this.fun}(${args.join(', ')})`;
+  }
+
+  _encodeArg(arg) {
+    if (typeof arg === 'string' && arg[0] === '$') {
+      let varname = arg.slice(1);
+      arg = this.vars[varname];
+      if (_.isUndefined(arg)) {
+        throw new Error(`Variable ${varname} was not declared`);
+      }
+    }
+    return '' + arg;
   }
 }
+
 
 export class DalmatinerQuery {
 
   constructor() {
     this.variables = {};
-    this.selects = [];
+    this.parts = [];
   }
 
   static equals(a, b) {
@@ -71,7 +82,7 @@ export class DalmatinerQuery {
   
   select(m) {
     var selector = {toString: this._encodeSelector.bind(this)};
-    this.active = this.selects.push(selector) - 1;
+    this.active = this.parts.push(selector) - 1;
     this.metric = _.map(m, function (mpart) {
       return mpart.value ? mpart.value : mpart.toString();
     });
@@ -102,11 +113,14 @@ export class DalmatinerQuery {
   }
 
   apply(fun, args = []) {
-    var selector = this.selector[this.active],
-        fargs = [selector].concat(args),
-        f = new DalmatinerQueryFun(fun, this.variables, args);
+    if (_.isUndefined(this.active))
+      throw new Error("You need to select something before you can apply functions");
 
-    this.selector[this.active] = f;
+    var part = this.parts[this.active],
+        fargs = [part].concat(args),
+        f = new DalmatinerFunction(fun, fargs, this.variables);
+
+    this.parts[this.active] = f;
     return this;
   }
 
@@ -119,7 +133,7 @@ export class DalmatinerQuery {
   }
   
   toUserString() {
-    return 'SELECT ' + this.selects.join(', ');
+    return 'SELECT ' + this.parts.join(', ');
   }
 
   /**
