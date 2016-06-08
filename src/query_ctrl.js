@@ -88,9 +88,9 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
       return this.$q.resolve(this.getTagConditions());
     case ('operator'):
       return this.$q.resolve(this.getTagOperators());
+    default:
+      throw new Error('Invalid segment type: ' + type);
     }
-
-    return this.datasource.getScopeOptions(this.target, index);
   }
 
   getMetricOptionsAt(index) {
@@ -111,9 +111,18 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
       tags.push(this.getTagConditions()[0]);
     tags.push(key,
               this.getTagOperators()[0],
-              this.uiSegmentSrv.newKeyValue('""'));
+              {html: '...', value: '...', fake: true, type: 'value'});
     this.new_tag.value = null;
     this.new_tag.html = this.uiSegmentSrv.newPlusButton().html;
+    this.refresh();
+  }
+
+  onTagSegmentChange(index) {
+    var seg = this.target.tags[index];
+    if (seg.type === 'key') {
+      this.target.tags[index + 2] =
+        {html: '...', value: '...', fake: true, type: 'value'};
+    }
     this.refresh();
   }
 

@@ -17,12 +17,14 @@ class DalmatinerQueryCondition {
   }
 
   toString() {
-    var ns, key, value, a, b;
+    var tag, value, a, b;
     switch (this.op) {
     case ('eq'):
-      [[ns, key], value] = this.args;
-      return ns ? `${ns}:'${key}' = '${value}'` :
-        `'${key}' = '${value}'`;
+      [tag, value] = this.args;
+      return `${this._encodeTag(tag)} = '${value}'`;
+    case ('present'):
+      [tag] = this.args;
+      return this._encodeTag(tag);
     case ('and'):
       [a, b] = this.args;
       return `${a} AND ${b}`;
@@ -31,6 +33,10 @@ class DalmatinerQueryCondition {
       return `${a} OR ${b}`;
     }
     return '';
+  }
+
+  _encodeTag([ns, key]) {
+    return ns ? `${ns}:'${key}'` : `'${key}'`;
   }
 }
 
@@ -70,6 +76,10 @@ export class DalmatinerQuery {
 
   static equals(a, b) {
     return new DalmatinerQueryCondition('eq', a, b);
+  }
+
+  static present(a) {
+    return new DalmatinerQueryCondition('present', a);
   }
 
   /**

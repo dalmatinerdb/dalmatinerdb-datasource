@@ -141,6 +141,8 @@ function timestampPoints(values, start, increment) {
 
 function decodeList(res) {
   return _.map(res.data, function (item) {
+    if (item == '')
+      return {value: '--null--', html: '-- empty --'};
     return {value: item, html: item};
   });
 }
@@ -197,10 +199,17 @@ function buildCondition(tags) {
     tag = tags[i];
     if (tag.type === 'value') {
       let operator = stack.pop(),
-          key = stack.pop();
+          key = stack.pop(),
+          c;
       assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
       assert(key.type === 'key', "Expected tag key, but got: " + key.type);
-      stack.push(DalmatinerQuery.equals(JSON.parse(key.value), tag.value));
+      if (tag.fake)
+        c = null;
+      else if (tag.value === '--null--')
+        c = DalmatinerQuery.present(JSON.parse(key.value));
+      else
+        c = DalmatinerQuery.equals(JSON.parse(key.value), tag.value);
+      stack.push(c);
     } else {
       stack.push(tags[i]);
     }
@@ -212,7 +221,12 @@ function buildCondition(tags) {
   while (stack.length) {
     let kwd = stack.shift(),
         c = stack.shift();
-    assert(kwd.type === 'condition', "Expected condition keyword, but got: " + c);
+    if (condition === null) {
+      continue;
+    }
+    assert(kwd.type === 'condition', "Expected condition keyword, but got: " + JSON.stringify(c));
+    if (c === null)
+      continue;
     switch (kwd.value) {
     case('AND'):
       condition = condition.and(c);
