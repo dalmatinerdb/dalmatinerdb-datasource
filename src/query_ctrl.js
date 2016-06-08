@@ -1,3 +1,4 @@
+import './func_editor';
 import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
@@ -12,9 +13,11 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.target.collection = this.target.collection ||
       uiSegmentSrv.newFake('select collection');
     this.target.tags = this.target.tags || [];
+    this.target.functions = this.target.functions || [];
     this.target.metric = this.target.metric || [];
 
     this.new_tag = uiSegmentSrv.newPlusButton();
+    this.new_func = uiSegmentSrv.newPlusButton();
     this.new_metric_part = uiSegmentSrv.newFake('...');
   }
 
@@ -36,6 +39,17 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   getTagValues(tagKey) {
     return this.datasource.getTagValues(this.target, tagKey);
+  }
+
+  getFunctions() {
+    if (!this._functions) {
+      return this.datasource.getFunctions().then((data) => {
+        this._functions = data;
+        return data;
+      });
+    } else {
+      return this.$q.resolve(this._functions);
+    }
   }
 
   // Get list of supported tag join conditions, first will be used as default
@@ -93,6 +107,40 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.refresh();
   }
 
+  addFunction() {
+
+    var {value} = this.new_func;
+    var {functions} = this.target;
+    var option = this._getFunctionOption(value);
+
+    functions.push({
+      name: value,
+      args: [].concat(option.args)
+    });
+
+    this.new_func.value = null;
+    this.new_func.html = this.uiSegmentSrv.newPlusButton().html;
+    this.refresh();
+  }
+
+  removeFunction(index) {
+    this.target.functions.splice(index, 1);
+  }
+
+  moveFunction(from, to) {
+    var {functions} = this.target;
+    if (to >= 0 && to < functions.length) {
+      _.move(functions, from, to);
+    }
+  }
+
+  updateFunctionArg(funcIndex, argIndex, value) {
+    var {functions} = this.target;
+    if (functions[funcIndex] && argIndex < functions[funcIndex].args.length) {
+      functions[funcIndex].args[argIndex] = value;
+    }
+  }
+
   addMetricPart() {
     var {value} = this.new_metric_part;
 
@@ -119,6 +167,10 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   _newOperator(value) {
     return this.uiSegmentSrv.newSegment({value, html: value, type: 'operator',
                                          cssClass: 'query-segment-operator'});
+  }
+
+  _getFunctionOption(value) {
+    return this._functions ? _.find(this._functions, {value}) : void 0;
   }
 };
 

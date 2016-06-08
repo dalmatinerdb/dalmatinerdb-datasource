@@ -1,49 +1,83 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="true" has-text-edit="false">
 
   <div class="gf-form-inline">
-	<div class="gf-form">
+
+    <div class="gf-form">
       <label class="gf-form-label query-keyword">FROM</label>
-      <metric-segment segment="ctrl.target.collection"
-                      css-class="tight-form-item-xxlarge"
-                      get-options="ctrl.getCollections()"
-                      on-change="ctrl.refresh()" />
+      <metric-segment
+        segment="ctrl.target.collection"
+        css-class="tight-form-item-xxlarge"
+        get-options="ctrl.getCollections()"
+        on-change="ctrl.refresh()"
+      />
     </div>
+
     <div class="gf-form">
-	  <label class="gf-form-label query-keyword">WHERE</label>
+      <label class="gf-form-label query-keyword">WHERE</label>
     </div>
+
     <div class="gf-form" ng-repeat="segment in ctrl.target.tags">
-	  <metric-segment segment="segment"
-                      get-options="ctrl.getTagOptionsAt($index)"
-                      on-change="ctrl.refresh()" />
-	</div>
-    <div class="gf-form">
-      <metric-segment segment="ctrl.new_tag"
-                      get-options="ctrl.getTagKeys()"
-                      on-change="ctrl.addTag()" />
+      <metric-segment
+        segment="segment"
+        get-options="ctrl.getTagOptionsAt($index)"
+        on-change="ctrl.refresh()"
+      />
     </div>
+
+    <div class="gf-form">
+      <metric-segment
+        segment="ctrl.new_tag"
+        get-options="ctrl.getTagKeys()"
+        on-change="ctrl.addTag()"
+      />
+    </div>
+
     <div class="gf-form gf-form--grow">
-	  <div class="gf-form-label gf-form-label--grow"></div>
-	</div>
+      <div class="gf-form-label gf-form-label--grow"></div>
+    </div>
+
   </div>
 
   <div class="gf-form-inline">
+
     <div class="gf-form">
-	  <label class="gf-form-label query-keyword">SELECT</label>
+      <label class="gf-form-label query-keyword">SELECT</label>
       <div ng-repeat="segment in ctrl.target.metric" role="meuitem">
-        <metric-segment segment="segment"
-                        get-options="ctrl.getMetricOptionsAt($index)"
-                        on-change="ctrl.onMetricSegmentChange($index)">
-        </metric-segment>
+        <metric-segment
+          segment="segment"
+          get-options="ctrl.getMetricOptionsAt($index)"
+          on-change="ctrl.onMetricSegmentChange($index)"
+        />
       </div>
     </div>
+
     <div class="gf-form">
-      <metric-segment segment="ctrl.new_metric_part"
-                      get-options="ctrl.getMetricOptionsAt(-1)"
-                      on-change="ctrl.addMetricPart()" />
-    </div>     
+      <metric-segment
+        segment="ctrl.new_metric_part"
+        get-options="ctrl.getMetricOptionsAt(-1)"
+        on-change="ctrl.addMetricPart()"
+      />
+    </div>
+
+    <div class="gf-form" ng-if="ctrl.target.functions.length">
+      <div ng-repeat="func in ctrl.target.functions">
+        <span dalmatiner-func-editor class="gf-form-label query-part"></span>
+      </div>
+    </div>
+
+    <div class="gf-form">
+      <metric-segment
+        segment="ctrl.new_func"
+        get-options="ctrl.getFunctions()"
+        on-change="ctrl.addFunction()"
+        title="Add new function"
+      />
+    </div>
+
     <div class="gf-form gf-form--grow">
-	  <div class="gf-form-label gf-form-label--grow"></div>
-	</div>
+      <div class="gf-form-label gf-form-label--grow"></div>
+    </div>
+
   </div>
 
 </query-editor-row>
