@@ -96,7 +96,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   getMetricOptionsAt(index) {
     var metric = this.target.metric,
         parts = index >= 0 ? metric.slice(0, index) : metric,
-        prefix = _.map(metric, 'value');
+        prefix = _.map(parts, 'value');
 
     return this.datasource.getMetrics(this.target, prefix);
   }
@@ -164,7 +164,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.refresh();
   }
 
-  onMetricSegmentChange(segment, index) {
+  onMetricSegmentChange(index) {
     this.target.metric.splice(index + 1);
     this.refresh();
   }
