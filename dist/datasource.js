@@ -39,6 +39,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
   function decodeList(res) {
     return _.map(res.data, function (item) {
+      if (item == '') return { value: '--null--', html: '-- empty --' };
       return { value: item, html: item };
     });
   }
@@ -138,10 +139,12 @@ System.register(["lodash", "./query"], function (_export, _context) {
       tag = tags[i];
       if (tag.type === 'value') {
         var operator = stack.pop(),
-            key = stack.pop();
+            key = stack.pop(),
+            c = void 0;
         assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
         assert(key.type === 'key', "Expected tag key, but got: " + key.type);
-        stack.push(DalmatinerQuery.equals(JSON.parse(key.value), tag.value));
+        if (tag.fake) c = null;else if (tag.value === '--null--') c = DalmatinerQuery.present(JSON.parse(key.value));else c = DalmatinerQuery.equals(JSON.parse(key.value), tag.value);
+        stack.push(c);
       } else {
         stack.push(tags[i]);
       }
@@ -152,14 +155,18 @@ System.register(["lodash", "./query"], function (_export, _context) {
     condition = stack.shift();
     while (stack.length) {
       var kwd = stack.shift(),
-          c = stack.shift();
-      assert(kwd.type === 'condition', "Expected condition keyword, but got: " + c);
+          _c = stack.shift();
+      if (condition === null) {
+        continue;
+      }
+      assert(kwd.type === 'condition', "Expected condition keyword, but got: " + JSON.stringify(_c));
+      if (_c === null) continue;
       switch (kwd.value) {
         case 'AND':
-          condition = condition.and(c);
+          condition = condition.and(_c);
           break;
         case 'OR':
-          condition = condition.or(c);
+          condition = condition.or(_c);
           break;
         default:
           throw new Error('Unexpected condition keyword: ' + kwd.value);

@@ -100,34 +100,47 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "toString",
           value: function toString() {
-            var ns, key, value, a, b;
+            var tag, value, a, b;
             switch (this.op) {
               case 'eq':
                 var _args = _slicedToArray(this.args, 2);
 
-                var _args$ = _slicedToArray(_args[0], 2);
-
-                ns = _args$[0];
-                key = _args$[1];
+                tag = _args[0];
                 value = _args[1];
 
-                return ns ? ns + ":'" + key + "' = '" + value + "'" : "'" + key + "' = '" + value + "'";
+                return this._encodeTag(tag) + " = '" + value + "'";
+              case 'present':
+                var _args2 = _slicedToArray(this.args, 1);
+
+                tag = _args2[0];
+
+                return this._encodeTag(tag);
               case 'and':
-                var _args2 = _slicedToArray(this.args, 2);
-
-                a = _args2[0];
-                b = _args2[1];
-
-                return a + " AND " + b;
-              case 'or':
                 var _args3 = _slicedToArray(this.args, 2);
 
                 a = _args3[0];
                 b = _args3[1];
 
+                return a + " AND " + b;
+              case 'or':
+                var _args4 = _slicedToArray(this.args, 2);
+
+                a = _args4[0];
+                b = _args4[1];
+
                 return a + " OR " + b;
             }
             return '';
+          }
+        }, {
+          key: "_encodeTag",
+          value: function _encodeTag(_ref) {
+            var _ref2 = _slicedToArray(_ref, 2);
+
+            var ns = _ref2[0];
+            var key = _ref2[1];
+
+            return ns ? ns + ":'" + key + "'" : "'" + key + "'";
           }
         }]);
 
@@ -276,6 +289,11 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "equals",
           value: function equals(a, b) {
             return new DalmatinerQueryCondition('eq', a, b);
+          }
+        }, {
+          key: "present",
+          value: function present(a) {
+            return new DalmatinerQueryCondition('present', a);
           }
         }]);
 

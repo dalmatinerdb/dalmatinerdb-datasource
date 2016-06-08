@@ -146,16 +146,16 @@ System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_expor
                 return this.$q.resolve(this.getTagConditions());
               case 'operator':
                 return this.$q.resolve(this.getTagOperators());
+              default:
+                throw new Error('Invalid segment type: ' + type);
             }
-
-            return this.datasource.getScopeOptions(this.target, index);
           }
         }, {
           key: 'getMetricOptionsAt',
           value: function getMetricOptionsAt(index) {
             var metric = this.target.metric,
                 parts = index >= 0 ? metric.slice(0, index) : metric,
-                prefix = _.map(metric, 'value');
+                prefix = _.map(parts, 'value');
 
             return this.datasource.getMetrics(this.target, prefix);
           }
@@ -170,9 +170,18 @@ System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_expor
 
             key.html = html;
             if (tags.length > 0) tags.push(this.getTagConditions()[0]);
-            tags.push(key, this.getTagOperators()[0], this.uiSegmentSrv.newKeyValue('""'));
+            tags.push(key, this.getTagOperators()[0], { html: '...', value: '...', fake: true, type: 'value' });
             this.new_tag.value = null;
             this.new_tag.html = this.uiSegmentSrv.newPlusButton().html;
+            this.refresh();
+          }
+        }, {
+          key: 'onTagSegmentChange',
+          value: function onTagSegmentChange(index) {
+            var seg = this.target.tags[index];
+            if (seg.type === 'key') {
+              this.target.tags[index + 2] = { html: '...', value: '...', fake: true, type: 'value' };
+            }
             this.refresh();
           }
         }, {
@@ -231,7 +240,7 @@ System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_expor
           }
         }, {
           key: 'onMetricSegmentChange',
-          value: function onMetricSegmentChange(segment, index) {
+          value: function onMetricSegmentChange(index) {
             this.target.metric.splice(index + 1);
             this.refresh();
           }
