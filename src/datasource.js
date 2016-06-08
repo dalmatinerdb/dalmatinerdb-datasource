@@ -58,6 +58,7 @@ export class DalmatinerDatasource {
   // get simplified query string that will be displayed when form is collapsed
   getSimplifiedQuery(target) {
     return buildQuery(target)
+      .with('interval', '$interval')
       .toUserString();
   }
 
@@ -106,15 +107,6 @@ export class DalmatinerDatasource {
         }
         return _.values(n.children);
       });
-  }
-
-  getFunctions() {
-    return this.$q.resolve([
-      {html: 'zero', value: 'zero', args: []},
-      {html: 'one', value: 'one', args: ['arg1']},
-      {html: 'two', value: 'two', args: ['arg1', 'arg2']},
-      {html: 'three', value: 'three', args: ['arg1', 'arg2', 'arg3']}
-    ]);
   }
 
   /*
@@ -185,9 +177,13 @@ function buildQuery(fields) {
         .from(fields.collection)
         .select(fields.metric);
 
-  if (fields.tags && fields.tags.length > 0) {
+  if (! _.isEmpty(fields.tags)) {
     q.where(buildCondition(fields.tags));
   }
+  _.each(fields.functions, function (fn) {
+    q.apply(fn.name, fn.args);
+  });
+
   return q;
 }
 

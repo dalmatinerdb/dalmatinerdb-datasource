@@ -2,6 +2,17 @@ import './func_editor';
 import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
+const AVAILABLE_FUNCTIONS = [
+  {name: 'avg', spec: [{type: 'time', default: '$interval'}]},
+  {name: 'sum', spec: [{type: 'time', default: '$interval'}]},
+  {name: 'min', spec: [{type: 'time', default: '$interval'}]},
+  {name: 'max', spec: [{type: 'time', default: '$interval'}]},
+  {name: 'derivate', spec: []},
+  {name: 'confidence', spec: []},
+  {name: 'multiply', spec: [{type: 'number', default: '1'}]},
+  {name: 'divide', spec: [{type: 'number', default: '1'}]}
+];
+
 
 export class DalmatinerQueryCtrl extends QueryCtrl {
 
@@ -18,6 +29,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
     this.new_tag = uiSegmentSrv.newPlusButton();
     this.new_func = uiSegmentSrv.newPlusButton();
+    this.new_func.cssClass = 'query-part';
     this.new_metric_part = uiSegmentSrv.newFake('...');
   }
 
@@ -41,15 +53,13 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     return this.datasource.getTagValues(this.target, tagKey);
   }
 
-  getFunctions() {
-    if (!this._functions) {
-      return this.datasource.getFunctions().then((data) => {
-        this._functions = data;
-        return data;
-      });
-    } else {
-      return this.$q.resolve(this._functions);
-    }
+  getAvailableFunctions() {
+    return this.$q.resolve(AVAILABLE_FUNCTIONS.map(function (info) {
+      return {
+        html: info.name,
+        value: info.name
+      };
+    }));
   }
 
   // Get list of supported tag join conditions, first will be used as default
@@ -109,13 +119,17 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   addFunction() {
 
-    var {value} = this.new_func;
-    var {functions} = this.target;
-    var option = this._getFunctionOption(value);
+    var {functions} = this.target,
+        name = this.new_func.value,
+        info = this._getFunctionOption(name),
+        defaults = _.map(info.spec, function(s) {
+          return s.default || '';
+        });
 
     functions.push({
-      name: value,
-      args: [].concat(option.args)
+      name: info.name,
+      args: defaults,
+      spec: info.spec
     });
 
     this.new_func.value = null;
@@ -169,8 +183,8 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
                                          cssClass: 'query-segment-operator'});
   }
 
-  _getFunctionOption(value) {
-    return this._functions ? _.find(this._functions, {value}) : void 0;
+  _getFunctionOption(name) {
+    return _.find(AVAILABLE_FUNCTIONS, {name});
   }
 };
 

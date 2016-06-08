@@ -43,7 +43,7 @@ angular
 
           _.each(func.args, (arg, argIndex) => {
 
-            var argValue = templateSrv.highlightVariablesAsHtml(func.args[argIndex]);
+            var argValue = templateSrv.highlightVariablesAsHtml(arg);
             var $argField = $(tmplArg);
 
             var $argLabel = $(
@@ -61,7 +61,7 @@ angular
             $argField.blur(_.partial(onArgEditDone, $argLabel, $argField, argIndex));
             $argField.keyup(_.partial(onArgKeyPress, $argLabel, $argField, argIndex));
             $argLabel.click(_.partial(onArgLabelClick, $argLabel, $argField, argIndex));
-          })
+          });
 
           $('<span>)</span>').appendTo(el);
 
