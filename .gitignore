@@ -1,2 +1,13 @@
-/node_modules
-/.build
+node_modules
+npm-debug.log
+.npmrc
+.build
+dist
+*.diff
+*.err
+*.log
+*.swo
+*.swp
+*~
+.DS_Store
+._*

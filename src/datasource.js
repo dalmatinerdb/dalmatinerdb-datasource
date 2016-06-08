@@ -108,6 +108,15 @@ export class DalmatinerDatasource {
       });
   }
 
+  getFunctions() {
+    return this.$q.resolve([
+      {html: 'zero', value: 'zero', args: []},
+      {html: 'one', value: 'one', args: ['arg1']},
+      {html: 'two', value: 'two', args: ['arg1', 'arg2']},
+      {html: 'three', value: 'three', args: ['arg1', 'arg2', 'arg3']}
+    ]);
+  }
+
   /*
    * Internal methods
    */
