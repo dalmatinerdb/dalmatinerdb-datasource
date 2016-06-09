@@ -21,7 +21,15 @@
         segment="segment"
         get-options="ctrl.getTagOptionsAt($index)"
         on-change="ctrl.onTagSegmentChange($index)"
+        style="position: relative;"
       />
+      <a
+        ng-click="ctrl.removeWhereSegment($index)"
+        style="position: absolute; top: -1px; right: 4px; font-size: 11px;"
+        ng-if="$index === 0 || $index % 4 === 0"
+      >
+        <span class="pointer fa fa-remove" title="Remove condition"></span>
+      </a>
     </div>
 
     <div class="gf-form">
