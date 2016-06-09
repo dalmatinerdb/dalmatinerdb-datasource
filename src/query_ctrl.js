@@ -178,6 +178,13 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.refresh();
   }
 
+  removeWhereSegment(index) {
+    var {tags} = this.target;
+    tags.splice(index, 4);
+    if (tags.length === 4) { tags.pop(); }
+    this.refresh();
+  }
+
   /**
    * Internal function
    */

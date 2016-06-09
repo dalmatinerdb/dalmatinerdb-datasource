@@ -245,6 +245,17 @@ System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_expor
             this.refresh();
           }
         }, {
+          key: 'removeWhereSegment',
+          value: function removeWhereSegment(index) {
+            var tags = this.target.tags;
+
+            tags.splice(index, 4);
+            if (tags.length === 4) {
+              tags.pop();
+            }
+            this.refresh();
+          }
+        }, {
           key: '_newCondition',
           value: function _newCondition(value) {
             return this.uiSegmentSrv.newSegment({ value: value, html: value, type: 'condition',
