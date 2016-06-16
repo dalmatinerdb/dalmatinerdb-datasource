@@ -10,6 +10,9 @@ export class DalmatinerDatasource {
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
     this.srv = backendSrv;
+    if (instanceSettings.jsonData) {
+      this.authToken = instanceSettings.jsonData.auth ? instanceSettings.jsonData.authToken : null;
+    }
   }
 
   /*
@@ -114,6 +117,9 @@ export class DalmatinerDatasource {
    */
 
   _request(path, headers = {Accept: 'application/json'}) {
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
     return this.srv.datasourceRequest({url: this.url + path, headers: headers});
   }
 };

@@ -17,10 +17,11 @@
     </div>
 
     <div class="gf-form" ng-repeat="segment in ctrl.target.tags">
-      <metric-segment
+      <dalmatiner-metric-segment
         segment="segment"
         get-options="ctrl.getTagOptionsAt($index)"
         on-change="ctrl.onTagSegmentChange($index)"
+        use-html-label="true"
         style="position: relative;"
       />
       <a
@@ -33,10 +34,11 @@
     </div>
 
     <div class="gf-form">
-      <metric-segment
+      <dalmatiner-metric-segment
         segment="ctrl.new_tag"
         get-options="ctrl.getTagKeys()"
         on-change="ctrl.addTag()"
+        use-html-label="$index === 0 || $index % 4 === 0"
       />
     </div>
 

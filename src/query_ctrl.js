@@ -1,4 +1,5 @@
 import './func_editor';
+import './metric_segment';
 import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
