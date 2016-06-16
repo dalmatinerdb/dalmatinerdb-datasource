@@ -1,6 +1,6 @@
 'use strict';
 
-System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_export, _context) {
+System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk'], function (_export, _context) {
   "use strict";
 
   var _, QueryCtrl, _createClass, AVAILABLE_FUNCTIONS, DalmatinerQueryCtrl;
@@ -36,7 +36,7 @@ System.register(['./func_editor', 'lodash', 'app/plugins/sdk'], function (_expor
   }
 
   return {
-    setters: [function (_func_editor) {}, function (_lodash) {
+    setters: [function (_func_editor) {}, function (_metric_segment) {}, function (_lodash) {
       _ = _lodash.default;
     }, function (_appPluginsSdk) {
       QueryCtrl = _appPluginsSdk.QueryCtrl;

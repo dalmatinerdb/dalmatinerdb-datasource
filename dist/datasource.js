@@ -253,6 +253,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
           this.url = instanceSettings.url;
           this.name = instanceSettings.name;
           this.srv = backendSrv;
+          if (instanceSettings.jsonData) {
+            this.authToken = instanceSettings.jsonData.auth ? instanceSettings.jsonData.authToken : null;
+          }
         }
 
         /*
@@ -385,6 +388,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
           value: function _request(path) {
             var headers = arguments.length <= 1 || arguments[1] === undefined ? { Accept: 'application/json' } : arguments[1];
 
+            if (this.authToken) {
+              headers['Authorization'] = "Bearer " + this.authToken;
+            }
             return this.srv.datasourceRequest({ url: this.url + path, headers: headers });
           }
         }]);

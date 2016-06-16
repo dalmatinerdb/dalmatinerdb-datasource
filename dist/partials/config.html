@@ -1,2 +1,15 @@
 <datasource-http-settings current="ctrl.current">
 </datasource-http-settings>
+
+<div class="gf-form-group">
+  <div class="gf-form-inline">
+    <div class="gf-form max-width-30">
+      <span class="gf-form-label width-7">Auth Token</span>
+      <div class="gf-form-switch max-width-6">
+        <input id="ddb-check-auth" type="checkbox" ng-model="ctrl.current.jsonData.auth">
+        <label for="ddb-check-auth" data-on="1" data-off="0"></label>
+      </div>
+      <input type="text" class="gf-form-input" ng-model="ctrl.current.jsonData.authToken" placeholder="token"></input>
+    </div>
+  </div>
+</div>
