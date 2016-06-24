@@ -116,11 +116,14 @@ export class DalmatinerDatasource {
    * Internal methods
    */
 
-  _request(path, headers = {Accept: 'application/json'}) {
+  _request(path) {
+    var headers = {Accept: 'application/json'},
+        options = {method: 'GET', url: this.url + path, headers};
     if (this.authToken) {
-      headers['Authorization'] = `Bearer ${this.authToken}`;
+      let sep = path.indexOf('?') >= 0 ? '&' : '?';
+      path += `${sep}token=${this.authToken}`;
     }
-    return this.srv.datasourceRequest({url: this.url + path, headers: headers});
+    return this.srv.datasourceRequest({method: 'GET', url: this.url + path, headers});
   }
 };
 
@@ -149,7 +152,10 @@ function decodeList(res) {
   return _.map(res.data, function (item) {
     if (item == '')
       return {value: '--null--', html: '-- empty --'};
-    return {value: item, html: item};
+    else if (typeof item == 'string')
+      return {value: item, html: item};
+    else
+      return {value: item.key, html: item.label};
   });
 }
 

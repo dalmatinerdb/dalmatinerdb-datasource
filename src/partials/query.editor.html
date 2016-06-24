@@ -4,11 +4,12 @@
 
     <div class="gf-form">
       <label class="gf-form-label query-keyword">FROM</label>
-      <metric-segment
+      <dalmatiner-metric-segment
         segment="ctrl.target.collection"
         css-class="tight-form-item-xxlarge"
         get-options="ctrl.getCollections()"
         on-change="ctrl.refresh()"
+        use-html-label="true"
       />
     </div>
 

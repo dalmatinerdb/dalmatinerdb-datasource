@@ -39,8 +39,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
   function decodeList(res) {
     return _.map(res.data, function (item) {
-      if (item == '') return { value: '--null--', html: '-- empty --' };
-      return { value: item, html: item };
+      if (item == '') return { value: '--null--', html: '-- empty --' };else if (typeof item == 'string') return { value: item, html: item };else return { value: item.key, html: item.label };
     });
   }
 
@@ -386,12 +385,13 @@ System.register(["lodash", "./query"], function (_export, _context) {
         }, {
           key: "_request",
           value: function _request(path) {
-            var headers = arguments.length <= 1 || arguments[1] === undefined ? { Accept: 'application/json' } : arguments[1];
-
+            var headers = { Accept: 'application/json' },
+                options = { method: 'GET', url: this.url + path, headers: headers };
             if (this.authToken) {
-              headers['Authorization'] = "Bearer " + this.authToken;
+              var sep = path.indexOf('?') >= 0 ? '&' : '?';
+              path += sep + "token=" + this.authToken;
             }
-            return this.srv.datasourceRequest({ url: this.url + path, headers: headers });
+            return this.srv.datasourceRequest({ method: 'GET', url: this.url + path, headers: headers });
           }
         }]);
 
