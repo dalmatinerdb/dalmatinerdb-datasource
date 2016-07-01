@@ -49,7 +49,7 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'network', 'eth0', 'sent'])
         .apply('derivate');
       expect(query.toUserString()).to.be
-        .equal("SELECT derivate('base'.'network'.'eth0'.'sent' IN 'myorg')");
+        .equal("SELECT derivate('base'.'network'.'eth0'.'sent' FROM 'myorg')");
     });
 
     it('should support function with extra argument', function() {
@@ -57,7 +57,7 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'cpu'])
         .apply('avg', ['30s']);
       expect(query.toUserString()).to.be
-        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+        .equal("SELECT avg('base'.'cpu' FROM 'myorg', 30s)");
     });
 
     it('should expand variables in function arguments', function() {
@@ -66,7 +66,7 @@ describe('DalmatinerQuery', function() {
         .with('interval', '30s')
         .apply('avg', ['$interval']);
       expect(query.toUserString()).to.be
-        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+        .equal("SELECT avg('base'.'cpu' FROM 'myorg', 30s)");
     });
 
     it('should fail when variable is not defined', function() {

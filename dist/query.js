@@ -260,7 +260,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
           value: function _encodeSelector() {
             var metric = this._encodeMetric(),
                 collection = this._encodeCollection(),
-                str = metric + " IN " + collection;
+                str = metric + " FROM " + collection;
             if (this.condition) {
               str += " WHERE " + this.condition;
             }
