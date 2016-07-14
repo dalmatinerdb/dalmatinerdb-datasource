@@ -42,17 +42,17 @@ describe('DalmatinerDatasource', function() {
 
     it('should create a query, that include tags', function() {
       var eq = {type: 'operator', value: '='},
-          empty = {type: 'value', value: ''},
+          empty = {type: 'value', value: '', fake: true},
           q = ds.getSimplifiedQuery({
             collection: {value: 'dataloop_org'},
             metric: [{value: 'base'}, {value: 'cpu'}],
-            tags: [{type: "key", value: '["tag","production"]'}, eq, empty,
+            tags: [{type: "key", value: '["dl","tag"]'}, eq, {type: "value", value: "production"},
                    {type: "condition", value: 'AND'},
-                   {type: "key", value: '["tag","web"]'}, eq, empty,
+                   {type: "key", value: '["dl","tag"]'}, eq, {type: "value", value: "web"},
                    {type: "condition", value: 'OR'},
-                   {type: "key", value: '["tag","staging"]'}, eq, empty]
+                   {type: "key", value: '["dl","hostname"]'}, eq, {type: "value", value: "dlstagn1"}]
           });
-      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' WHERE tag:'production' = '' AND tag:'web' = '' OR tag:'staging' = ''");
+      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' WHERE label:'production' AND label:'web' OR dl:'hostname' = 'dlstagn1'");
     });
   });
 
@@ -92,7 +92,7 @@ describe('DalmatinerDatasource', function() {
             .then(function (tags) {
               var names = _.map(tags, 'html');
               expect(names).to.be.deep.equal([
-                "tag:all", "tag:prod", "tag:stag", "region", "datacenter", "custom:kernel"
+                "custom:kernel", "datacenter", "region", "tag:all", "tag:prod", "tag:stag"
               ]);
               done();
             }).catch(report(done));

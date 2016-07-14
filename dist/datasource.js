@@ -17,10 +17,10 @@ System.register(["lodash", "./query"], function (_export, _context) {
     var s = _res$data.s;
     var d = _res$data.d;
     var start = s * 1000;
-    return { data: (d || []).map(function (_ref7) {
-        var n = _ref7.n;
-        var v = _ref7.v;
-        var r = _ref7.r;
+    return { data: (d || []).map(function (_ref9) {
+        var n = _ref9.n;
+        var v = _ref9.v;
+        var r = _ref9.r;
 
         return {
           target: n,
@@ -39,7 +39,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
   function decodeList(res) {
     return _.map(res.data, function (item) {
-      if (item == '') return { value: '--null--', html: '-- empty --' };else if (typeof item == 'string') return { value: item, html: item };else return { value: item.key, html: item.label };
+      if (item === '') {
+        return { value: '--empty--', html: '-- empty --' };
+      } else if (typeof item == 'string') return { value: item, html: item };else return { value: item.key, html: item.label };
     });
   }
 
@@ -128,44 +130,73 @@ System.register(["lodash", "./query"], function (_export, _context) {
     return q;
   }
 
-  function buildCondition(tags) {
+  function buildCondition(tokens) {
     var stack = [],
         condition;
 
     // First run is to expand all operators, leaving only condition objects and
     // condition keywords left on stack
-    for (var i = 0, tag; i < tags.length; i++) {
-      tag = tags[i];
-      if (tag.type === 'value') {
-        var operator = stack.pop(),
-            key = stack.pop(),
-            c = void 0;
-        assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
-        assert(key.type === 'key', "Expected tag key, but got: " + key.type);
-        if (tag.fake) c = null;else if (tag.value === '--null--') c = DalmatinerQuery.present(JSON.parse(key.value));else c = DalmatinerQuery.equals(JSON.parse(key.value), tag.value);
-        stack.push(c);
-      } else {
-        stack.push(tags[i]);
+    var _iteratorNormalCompletion4 = true;
+    var _didIteratorError4 = false;
+    var _iteratorError4 = undefined;
+
+    try {
+      for (var _iterator4 = tokens[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+        var token = _step4.value;
+
+        if (token.type === 'value') {
+          var operator = stack.pop(),
+              key = stack.pop(),
+              _c = void 0,
+              v = void 0;
+          assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
+          assert(key.type === 'key', "Expected token key, but got: " + key.type);
+          if (token.fake) {
+            _c = null;
+          } else if (key.value == '["dl","tag"]') {
+            _c = DalmatinerQuery.present(['label', token.value]);
+          } else {
+            v = token.value === '--empty--' ? v = '' : v = token.value;
+            _c = DalmatinerQuery.equals(JSON.parse(key.value), v);
+          }
+          stack.push(_c);
+        } else {
+          stack.push(token);
+        }
+      }
+
+      // Now we iterate through stack to combine all conditions joining them by
+      // keyword
+    } catch (err) {
+      _didIteratorError4 = true;
+      _iteratorError4 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+          _iterator4.return();
+        }
+      } finally {
+        if (_didIteratorError4) {
+          throw _iteratorError4;
+        }
       }
     }
 
-    // Now we iterate through stack to combine all conditions joining them by
-    // keyword
     condition = stack.shift();
     while (stack.length) {
       var kwd = stack.shift(),
-          _c = stack.shift();
+          c = stack.shift();
       if (condition === null) {
         continue;
       }
-      assert(kwd.type === 'condition', "Expected condition keyword, but got: " + JSON.stringify(_c));
-      if (_c === null) continue;
+      assert(kwd.type === 'condition', "Expected condition keyword, but got: " + JSON.stringify(c));
+      if (c === null) continue;
       switch (kwd.value) {
         case 'AND':
-          condition = condition.and(_c);
+          condition = condition.and(c);
           break;
         case 'OR':
-          condition = condition.or(_c);
+          condition = condition.or(c);
           break;
         default:
           throw new Error('Unexpected condition keyword: ' + kwd.value);
@@ -316,12 +347,14 @@ System.register(["lodash", "./query"], function (_export, _context) {
             var c = collection.value;
             return this._request("/collections/" + c + "/namespaces").then(function (res) {
               return _this.$q.all(_.reduce(res.data, function (acc, ns) {
-                if (ns != 'ddb') {
-                  acc.push(_this.getTagNamespaceKeys({ collection: collection }, ns));
-                }
+                if (ns === 'label') acc.push({ html: 'dl:tag', value: '["dl","tag"]' });else if (ns != 'ddb') acc.push(_this.getTagNamespaceKeys({ collection: collection }, ns));
                 return acc;
               }, []));
-            }).then(_.flatten);
+            }).then(function (keys) {
+              return _.chain(keys).flatten().sortBy(function (i) {
+                return i.html.replace(/^dl:/, '_');
+              }).value();
+            });
           }
         }, {
           key: "getTagNamespaceKeys",
@@ -333,13 +366,33 @@ System.register(["lodash", "./query"], function (_export, _context) {
           }
         }, {
           key: "getTagValues",
-          value: function getTagValues(_ref3, _ref4) {
+          value: function getTagValues(_ref3, tag) {
             var collection = _ref3.collection;
 
-            var _ref5 = _slicedToArray(_ref4, 2);
+            var _tag = _slicedToArray(tag, 2);
 
-            var namespace = _ref5[0];
-            var key = _ref5[1];
+            var namespace = _tag[0];
+            var key = _tag[1];
+
+            if (namespace == 'dl' && key == 'tag') return this.getLabelTagValues({ collection: collection });else return this.getTrueTagValues({ collection: collection }, tag);
+          }
+        }, {
+          key: "getLabelTagValues",
+          value: function getLabelTagValues(_ref4) {
+            var collection = _ref4.collection;
+
+            var c = collection.value;
+            return this._request("/collections/" + c + "/namespaces/label/tags").then(decodeList);
+          }
+        }, {
+          key: "getTrueTagValues",
+          value: function getTrueTagValues(_ref5, _ref6) {
+            var collection = _ref5.collection;
+
+            var _ref7 = _slicedToArray(_ref6, 2);
+
+            var namespace = _ref7[0];
+            var key = _ref7[1];
 
             var c = collection.value,
                 p = "/collections/" + c + "/namespaces/" + namespace + "/tags/" + key + "/values";
@@ -347,8 +400,8 @@ System.register(["lodash", "./query"], function (_export, _context) {
           }
         }, {
           key: "getMetrics",
-          value: function getMetrics(_ref6) {
-            var collection = _ref6.collection;
+          value: function getMetrics(_ref8) {
+            var collection = _ref8.collection;
             var prefix = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
             return this._request('/collections/' + collection.value + '/metrics').then(decodeMetrics).then(function (root) {

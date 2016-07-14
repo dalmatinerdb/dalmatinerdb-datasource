@@ -30,15 +30,23 @@ describe('DalmatinerQuery', function() {
     });
 
     it('should build a condition that can be and-ed', function() {
-      var c = DalmatinerQuery.equals(['tag', 'production'], '')
-            .and(DalmatinerQuery.equals(['tag', 'web'], ''));
-      expect('' + c).to.be.equal("tag:'production' = '' AND tag:'web' = ''");
+      var c = DalmatinerQuery.equals(['label', 'production'], '')
+            .and(DalmatinerQuery.equals(['label', 'web'], ''));
+      expect('' + c).to.be.equal("label:'production' = '' AND label:'web' = ''");
     });
 
     it('should build a condition that can be or-ed', function() {
-      var c = DalmatinerQuery.equals(['tag', 'production'], '')
-            .or(DalmatinerQuery.equals(['tag', 'web'], ''));
-      expect('' + c).to.be.equal("tag:'production' = '' OR tag:'web' = ''");
+      var c = DalmatinerQuery.equals(['label', 'production'], '')
+            .or(DalmatinerQuery.equals(['label', 'web'], ''));
+      expect('' + c).to.be.equal("label:'production' = '' OR label:'web' = ''");
+    });
+  });
+
+  describe('#present', function() {
+
+    it('should build a condition checking presence of a tag', function() {
+      var c = DalmatinerQuery.present(['label', 'production']);
+      expect('' + c).to.be.equal("label:'production'");
     });
   });
 

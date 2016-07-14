@@ -76,14 +76,20 @@ export class DalmatinerDatasource {
       .then((res) => {
         return this.$q.all(
           _.reduce(res.data, (acc, ns) => {
-            if (ns != 'ddb') {
+            if (ns === 'label')
+              acc.push({html: 'dl:tag', value: '["dl","tag"]'});
+            else if (ns != 'ddb')
               acc.push(this.getTagNamespaceKeys({collection}, ns));
-            }
             return acc;
           }, [])
         );
       })
-      .then(_.flatten);
+      .then((keys) => {
+        return _.chain(keys)
+          .flatten()
+          .sortBy(function(i) {return i.html.replace(/^dl:/, '_');})
+          .value();
+      });
   }
 
   getTagNamespaceKeys({collection}, namespace) {
@@ -92,7 +98,21 @@ export class DalmatinerDatasource {
       .then(_.partial(decodeTags, namespace));
   }
 
-  getTagValues({collection}, [namespace, key]) {
+  getTagValues({collection}, tag) {
+    var [namespace, key] = tag;
+    if (namespace == 'dl' && key == 'tag')
+      return this.getLabelTagValues({collection});
+    else
+      return this.getTrueTagValues({collection}, tag);
+  }
+
+  getLabelTagValues({collection}) {
+    var c = collection.value;
+    return this._request(`/collections/${c}/namespaces/label/tags`)
+      .then(decodeList);
+  }
+
+  getTrueTagValues({collection}, [namespace, key]){
     var c = collection.value,
         p = `/collections/${c}/namespaces/${namespace}/tags/${key}/values`;
     return this._request(p)
@@ -150,9 +170,9 @@ function timestampPoints(values, start, increment) {
 
 function decodeList(res) {
   return _.map(res.data, function (item) {
-    if (item == '')
-      return {value: '--null--', html: '-- empty --'};
-    else if (typeof item == 'string')
+    if (item === '') {
+      return {value: '--empty--', html: '-- empty --'};
+    } else if (typeof item == 'string')
       return {value: item, html: item};
     else
       return {value: item.key, html: item.label};
@@ -201,29 +221,30 @@ function buildQuery(fields) {
   return q;
 }
 
-function buildCondition(tags) {
+function buildCondition(tokens) {
   var stack = [],
       condition;
 
   // First run is to expand all operators, leaving only condition objects and
   // condition keywords left on stack
-  for (let i = 0, tag; i < tags.length; i++) {
-    tag = tags[i];
-    if (tag.type === 'value') {
+  for (let token of tokens) {
+    if (token.type === 'value') {
       let operator = stack.pop(),
           key = stack.pop(),
-          c;
+          c, v;
       assert(operator.type === 'operator', "Expected operator, but got: " + operator.type);
-      assert(key.type === 'key', "Expected tag key, but got: " + key.type);
-      if (tag.fake)
+      assert(key.type === 'key', "Expected token key, but got: " + key.type);
+      if (token.fake) {
         c = null;
-      else if (tag.value === '--null--')
-        c = DalmatinerQuery.present(JSON.parse(key.value));
-      else
-        c = DalmatinerQuery.equals(JSON.parse(key.value), tag.value);
+      } else if (key.value == '["dl","tag"]') {
+        c = DalmatinerQuery.present(['label', token.value]);
+      } else {
+        v = token.value === '--empty--' ? v = '' : v = token.value;
+        c = DalmatinerQuery.equals(JSON.parse(key.value), v);
+      }
       stack.push(c);
     } else {
-      stack.push(tags[i]);
+      stack.push(token);
     }
   }
 
