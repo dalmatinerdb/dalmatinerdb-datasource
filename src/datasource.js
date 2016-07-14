@@ -44,14 +44,18 @@ export class DalmatinerDatasource {
   // get query string
   getQuery(options) {
     var {range, interval, targets} = options,
-        fields = targets[0];
+        q = new DalmatinerQuery();
 
-    if (targets.length <= 0 ||
-        (! fields.collection.value) ||
-        (fields.metric.length <= 0))
+    if (targets.length <= 0)
       return null;
 
-    return buildQuery(fields)
+    for (let fields of targets) {
+      if ((fields.collection.value) &&
+          (fields.metric.length > 0))
+        queryFields(q, fields);
+    }
+
+    return q
       .beginningAt(range.from)
       .endingAt(range.to)
       .with('interval', interval)
@@ -60,7 +64,9 @@ export class DalmatinerDatasource {
 
   // get simplified query string that will be displayed when form is collapsed
   getSimplifiedQuery(target) {
-    return buildQuery(target)
+    var q = new DalmatinerQuery();
+    queryFields(q, target);
+    return q
       .with('interval', '$interval')
       .toUserString();
   }
@@ -206,10 +212,9 @@ function decodeTags(ns, res) {
   });
 }
 
-function buildQuery(fields) {
-  var q = new DalmatinerQuery()
-        .from(fields.collection)
-        .select(fields.metric);
+function queryFields(q, fields) {
+  q.from(fields.collection)
+    .select(fields.metric);
 
   if (! _.isEmpty(fields.tags)) {
     q.where(buildCondition(fields.tags));

@@ -48,24 +48,24 @@ System.register(["lodash", "./query"], function (_export, _context) {
   function decodeMetrics(res) {
     var root = { children: {} };
 
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
 
     try {
-      for (var _iterator2 = res.data[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var _step2$value = _step2.value;
-        var key = _step2$value.key;
-        var parts = _step2$value.parts;
+      for (var _iterator3 = res.data[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var _step3$value = _step3.value;
+        var key = _step3$value.key;
+        var parts = _step3$value.parts;
 
         var n = root;
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
 
         try {
-          for (var _iterator3 = parts[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            var part = _step3.value;
+          for (var _iterator4 = parts[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var part = _step4.value;
 
             if (!n.children[part]) {
               n.children[part] = {
@@ -77,31 +77,31 @@ System.register(["lodash", "./query"], function (_export, _context) {
             n = n.children[part];
           }
         } catch (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
+          _didIteratorError4 = true;
+          _iteratorError4 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-              _iterator3.return();
+            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+              _iterator4.return();
             }
           } finally {
-            if (_didIteratorError3) {
-              throw _iteratorError3;
+            if (_didIteratorError4) {
+              throw _iteratorError4;
             }
           }
         }
       }
     } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
         }
       } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
+        if (_didIteratorError3) {
+          throw _iteratorError3;
         }
       }
     }
@@ -117,8 +117,8 @@ System.register(["lodash", "./query"], function (_export, _context) {
     });
   }
 
-  function buildQuery(fields) {
-    var q = new DalmatinerQuery().from(fields.collection).select(fields.metric);
+  function queryFields(q, fields) {
+    q.from(fields.collection).select(fields.metric);
 
     if (!_.isEmpty(fields.tags)) {
       q.where(buildCondition(fields.tags));
@@ -136,13 +136,13 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
     // First run is to expand all operators, leaving only condition objects and
     // condition keywords left on stack
-    var _iteratorNormalCompletion4 = true;
-    var _didIteratorError4 = false;
-    var _iteratorError4 = undefined;
+    var _iteratorNormalCompletion5 = true;
+    var _didIteratorError5 = false;
+    var _iteratorError5 = undefined;
 
     try {
-      for (var _iterator4 = tokens[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-        var token = _step4.value;
+      for (var _iterator5 = tokens[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+        var token = _step5.value;
 
         if (token.type === 'value') {
           var operator = stack.pop(),
@@ -168,16 +168,16 @@ System.register(["lodash", "./query"], function (_export, _context) {
       // Now we iterate through stack to combine all conditions joining them by
       // keyword
     } catch (err) {
-      _didIteratorError4 = true;
-      _iteratorError4 = err;
+      _didIteratorError5 = true;
+      _iteratorError5 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion4 && _iterator4.return) {
-          _iterator4.return();
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return();
         }
       } finally {
-        if (_didIteratorError4) {
-          throw _iteratorError4;
+        if (_didIteratorError5) {
+          throw _iteratorError5;
         }
       }
     }
@@ -321,16 +321,43 @@ System.register(["lodash", "./query"], function (_export, _context) {
             var range = options.range;
             var interval = options.interval;
             var targets = options.targets;
-            var fields = targets[0];
+            var q = new DalmatinerQuery();
 
-            if (targets.length <= 0 || !fields.collection.value || fields.metric.length <= 0) return null;
+            if (targets.length <= 0) return null;
 
-            return buildQuery(fields).beginningAt(range.from).endingAt(range.to).with('interval', interval).toString();
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+              for (var _iterator = targets[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var fields = _step.value;
+
+                if (fields.collection.value && fields.metric.length > 0) queryFields(q, fields);
+              }
+            } catch (err) {
+              _didIteratorError = true;
+              _iteratorError = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+              } finally {
+                if (_didIteratorError) {
+                  throw _iteratorError;
+                }
+              }
+            }
+
+            return q.beginningAt(range.from).endingAt(range.to).with('interval', interval).toString();
           }
         }, {
           key: "getSimplifiedQuery",
           value: function getSimplifiedQuery(target) {
-            return buildQuery(target).with('interval', '$interval').toUserString();
+            var q = new DalmatinerQuery();
+            queryFields(q, target);
+            return q.with('interval', '$interval').toUserString();
           }
         }, {
           key: "getCollections",
@@ -406,28 +433,28 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
             return this._request('/collections/' + collection.value + '/metrics').then(decodeMetrics).then(function (root) {
               var n = root;
-              var _iteratorNormalCompletion = true;
-              var _didIteratorError = false;
-              var _iteratorError = undefined;
+              var _iteratorNormalCompletion2 = true;
+              var _didIteratorError2 = false;
+              var _iteratorError2 = undefined;
 
               try {
-                for (var _iterator = prefix[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                  var p = _step.value;
+                for (var _iterator2 = prefix[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                  var p = _step2.value;
 
                   n = n.children[p];
                   if (!n) return [];
                 }
               } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
+                  if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
                   }
                 } finally {
-                  if (_didIteratorError) {
-                    throw _iteratorError;
+                  if (_didIteratorError2) {
+                    throw _iteratorError2;
                   }
                 }
               }

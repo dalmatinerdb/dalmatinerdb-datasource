@@ -3,7 +3,7 @@
 System.register(["lodash", "moment"], function (_export, _context) {
   "use strict";
 
-  var _, moment, _slicedToArray, _createClass, DalmatinerQueryCondition, DalmatinerFunction, DalmatinerQuery;
+  var _, moment, _slicedToArray, _createClass, DalmatinerQueryCondition, DalmatinerFunction, DalmatinerSelector, DalmatinerQuery;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -180,12 +180,58 @@ System.register(["lodash", "moment"], function (_export, _context) {
         return DalmatinerFunction;
       }();
 
+      DalmatinerSelector = function () {
+        function DalmatinerSelector(collection, metric, variables) {
+          _classCallCheck(this, DalmatinerSelector);
+
+          this.collection = collection;
+          this.metric = _.map(metric, function (mpart) {
+            return mpart.value ? mpart.value : mpart.toString();
+          });
+          this.variables = variables;
+        }
+
+        _createClass(DalmatinerSelector, [{
+          key: "where",
+          value: function where(condition) {
+            this.condition = condition;
+            return this;
+          }
+        }, {
+          key: "toString",
+          value: function toString() {
+            var metric = this._encodeMetric(),
+                collection = this._encodeCollection(),
+                str = metric + " IN " + collection;
+            if (this.condition) {
+              str += " WHERE " + this.condition;
+            }
+            return str;
+          }
+        }, {
+          key: "_encodeCollection",
+          value: function _encodeCollection() {
+            return "'" + this.collection + "'";
+          }
+        }, {
+          key: "_encodeMetric",
+          value: function _encodeMetric() {
+            return _.map(this.metric, function (part) {
+              return "'" + part + "'";
+            }).join('.');
+          }
+        }]);
+
+        return DalmatinerSelector;
+      }();
+
       _export("DalmatinerQuery", DalmatinerQuery = function () {
         function DalmatinerQuery() {
           _classCallCheck(this, DalmatinerQuery);
 
           this.variables = {};
           this.parts = [];
+          this.selectors = [];
         }
 
         _createClass(DalmatinerQuery, [{
@@ -197,11 +243,11 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "select",
           value: function select(m) {
-            var selector = { toString: this._encodeSelector.bind(this) };
-            this.active = this.parts.push(selector) - 1;
-            this.metric = _.map(m, function (mpart) {
-              return mpart.value ? mpart.value : mpart.toString();
-            });
+            if (!this.collection) throw new Error("You need to set collection (from statement) before selecting metric");
+            var selector = new DalmatinerSelector(this.collection, m);
+            this.selectors.push(selector);
+            this.parts.push(selector);
+            this.active = this.parts.length - 1;
             return this;
           }
         }, {
@@ -228,7 +274,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
             if (!condition instanceof DalmatinerQueryCondition) {
               throw new Error("Invalid query condition");
             }
-            this.condition = condition;
+            this.selectors[this.active].where(condition);
             return this;
           }
         }, {
@@ -254,29 +300,6 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "toUserString",
           value: function toUserString() {
             return 'SELECT ' + this.parts.join(', ');
-          }
-        }, {
-          key: "_encodeSelector",
-          value: function _encodeSelector() {
-            var metric = this._encodeMetric(),
-                collection = this._encodeCollection(),
-                str = metric + " IN " + collection;
-            if (this.condition) {
-              str += " WHERE " + this.condition;
-            }
-            return str;
-          }
-        }, {
-          key: "_encodeCollection",
-          value: function _encodeCollection() {
-            return "'" + this.collection + "'";
-          }
-        }, {
-          key: "_encodeMetric",
-          value: function _encodeMetric() {
-            return _.map(this.metric, function (part) {
-              return "'" + part + "'";
-            }).join('.');
           }
         }, {
           key: "_encodeRange",

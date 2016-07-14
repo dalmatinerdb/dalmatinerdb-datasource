@@ -50,6 +50,34 @@ describe('DalmatinerQuery', function() {
     });
   });
 
+  describe('#select', function() {
+
+    it('should be enough for simple query when combined with from statement', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', 'system']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' IN 'myorg'");
+    });
+
+    it('should create multi part query when called multiple times', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', 'system'])
+        .select(['base', 'cpu', 'user']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' IN 'myorg', 'base'.'cpu'.'user' IN 'myorg'");
+    });
+
+    it('should create selector for most recent collection', function() {
+      query.from('first-org')
+        .select(['base', 'cpu', 'system'])
+        .from('second-org')
+        .select(['base', 'cpu', 'user']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' IN 'first-org', 'base'.'cpu'.'user' IN 'second-org'");
+    });
+
+  });
+  
   describe('#apply', function() {
 
     it('should apply function on active selection', function() {
@@ -83,5 +111,29 @@ describe('DalmatinerQuery', function() {
         .apply('avg', ['$interval']);
       expect(query.toUserString).to.throw(Error);
     });
+
+    it('should allow for function chaining', function() {
+      query.from('myorg')
+        .select(['base', 'network', 'eth0', 'sent'])
+        .apply('derivate')
+        .apply('sum', ['30s']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' IN 'myorg'), 30s)");
+    });
+    
+    it('should be applied only to last selection', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', 'user'])
+        .select(['base', 'cpu', 'system'])
+        .apply('max', [])
+        .select(['base', 'cpu', 'idle'])
+        .apply('min', []);
+      expect(query.toUserString()).to.be.equal(
+        "SELECT 'base'.'cpu'.'user' IN 'myorg', " +
+          "max('base'.'cpu'.'system' IN 'myorg'), " +
+          "min('base'.'cpu'.'idle' IN 'myorg')"
+      );
+    });
+
   });
 });

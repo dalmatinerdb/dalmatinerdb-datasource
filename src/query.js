@@ -67,11 +67,50 @@ class DalmatinerFunction {
 }
 
 
+class DalmatinerSelector {
+
+  constructor(collection, metric, variables) {
+    this.collection = collection;
+    this.metric = _.map(metric, function (mpart) {
+      return mpart.value ? mpart.value : mpart.toString();
+    });
+    this.variables = variables;
+  }
+
+  where(condition) {
+    this.condition = condition;
+    return this;
+  }
+
+  toString() {
+    var metric = this._encodeMetric(),
+        collection = this._encodeCollection(),
+        str = `${metric} IN ${collection}`;
+    if (this.condition) {
+      str += ` WHERE ${this.condition}`;
+    }
+    return str;
+  }
+
+  _encodeCollection() {
+    return `'${this.collection}'`;
+  }
+
+  _encodeMetric() {
+    return _.map(this.metric, function(part) {
+      return `'${part}'`;
+    }).join('.');
+  }
+
+}
+
+
 export class DalmatinerQuery {
 
   constructor() {
     this.variables = {};
     this.parts = [];
+    this.selectors = [];
   }
 
   static equals(a, b) {
@@ -91,11 +130,12 @@ export class DalmatinerQuery {
   }
   
   select(m) {
-    var selector = {toString: this._encodeSelector.bind(this)};
-    this.active = this.parts.push(selector) - 1;
-    this.metric = _.map(m, function (mpart) {
-      return mpart.value ? mpart.value : mpart.toString();
-    });
+    if (! this.collection)
+      throw new Error("You need to set collection (from statement) before selecting metric");
+    var selector = new DalmatinerSelector(this.collection, m);
+    this.selectors.push(selector);
+    this.parts.push(selector);
+    this.active = this.parts.length - 1;
     return this;
   }
 
@@ -118,7 +158,7 @@ export class DalmatinerQuery {
     if (! condition instanceof DalmatinerQueryCondition) {
       throw new Error("Invalid query condition");
     }
-    this.condition = condition;
+    this.selectors[this.active].where(condition);
     return this;
   }
 
@@ -141,7 +181,7 @@ export class DalmatinerQuery {
   toString() {
     return this.toUserString() + ' ' + this._encodeRange();
   }
-  
+
   toUserString() {
     return 'SELECT ' + this.parts.join(', ');
   }
@@ -149,26 +189,6 @@ export class DalmatinerQuery {
   /**
    * Internal methods
    */
-
-  _encodeSelector() {
-    var metric = this._encodeMetric(),
-        collection = this._encodeCollection(),
-        str = `${metric} IN ${collection}`;
-    if (this.condition) {
-      str += ` WHERE ${this.condition}`;
-    }
-    return str;
-  }
-
-  _encodeCollection() {
-    return `'${this.collection}'`;
-  }
-
-  _encodeMetric() {
-    return _.map(this.metric, function(part) {
-      return `'${part}'`;
-    }).join('.');
-  }
 
   _encodeRange() {
     var ending = this.ending.utc().format("YYYY-MM-DD HH:mm:ss"),
