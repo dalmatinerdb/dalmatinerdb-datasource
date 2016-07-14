@@ -60,7 +60,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         };
       }();
 
-      AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] }, { name: 'derivate', spec: [] }, { name: 'confidence', spec: [] }, { name: 'multiply', spec: [{ type: 'number', default: '1' }] }, { name: 'divide', spec: [{ type: 'number', default: '1' }] }];
+      AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] }, { name: 'combine_avg', fun: 'avg', spec: [] }, { name: 'combine_sum', fun: 'sum', spec: [] }, { name: 'combine_min', fun: 'min', spec: [] }, { name: 'combine_max', fun: 'max', spec: [] }, { name: 'derivate', spec: [] }, { name: 'confidence', spec: [] }, { name: 'multiply', spec: [{ type: 'number', default: '1' }] }, { name: 'divide', spec: [{ type: 'number', default: '1' }] }];
 
       _export('DalmatinerQueryCtrl', DalmatinerQueryCtrl = function (_QueryCtrl) {
         _inherits(DalmatinerQueryCtrl, _QueryCtrl);
@@ -196,6 +196,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
 
             functions.push({
               name: info.name,
+              fun: info.fun,
               args: defaults,
               spec: info.spec
             });

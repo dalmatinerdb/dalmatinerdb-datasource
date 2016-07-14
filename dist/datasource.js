@@ -124,7 +124,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
       q.where(buildCondition(fields.tags));
     }
     _.each(fields.functions, function (fn) {
-      q.apply(fn.name, fn.args);
+      q.apply(fn.fun || fn.name, fn.args);
     });
 
     return q;
