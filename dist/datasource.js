@@ -322,6 +322,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
             var interval = options.interval;
             var targets = options.targets;
             var q = new DalmatinerQuery();
+            var auto_interval;
 
             if (targets.length <= 0) return null;
 
@@ -350,14 +351,16 @@ System.register(["lodash", "./query"], function (_export, _context) {
               }
             }
 
-            return q.beginningAt(range.from).endingAt(range.to).with('interval', interval).toString();
+            if (/^[0-9]+s$/.exec(interval) && parseInt(interval) < 30) auto_interval = '30s';
+
+            return q.beginningAt(range.from).endingAt(range.to).with('interval', interval).with('auto', auto_interval).toString();
           }
         }, {
           key: "getSimplifiedQuery",
           value: function getSimplifiedQuery(target) {
             var q = new DalmatinerQuery();
             queryFields(q, target);
-            return q.with('interval', '$interval').toUserString();
+            return q.with('interval', '$interval').with('auto', '$auto').toUserString();
           }
         }, {
           key: "getCollections",

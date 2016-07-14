@@ -44,7 +44,8 @@ export class DalmatinerDatasource {
   // get query string
   getQuery(options) {
     var {range, interval, targets} = options,
-        q = new DalmatinerQuery();
+        q = new DalmatinerQuery(),
+        auto_interval;
 
     if (targets.length <= 0)
       return null;
@@ -55,10 +56,14 @@ export class DalmatinerDatasource {
         queryFields(q, fields);
     }
 
+    if (/^[0-9]+s$/.exec(interval) && parseInt(interval) < 30)
+      auto_interval = '30s';
+
     return q
       .beginningAt(range.from)
       .endingAt(range.to)
       .with('interval', interval)
+      .with('auto', auto_interval)
       .toString();
   }
 
@@ -68,6 +73,7 @@ export class DalmatinerDatasource {
     queryFields(q, target);
     return q
       .with('interval', '$interval')
+      .with('auto', '$auto')
       .toUserString();
   }
 

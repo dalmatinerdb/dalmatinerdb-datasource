@@ -18,6 +18,11 @@ const AVAILABLE_FUNCTIONS = [
   {name: 'divide', spec: [{type: 'number', default: '1'}]}
 ];
 
+const DEFAULT_FUN = {
+  name: 'avg',
+  args: ['$auto'],
+  spec: _.find(AVAILABLE_FUNCTIONS, {name: 'avg'}).spec
+};
 
 export class DalmatinerQueryCtrl extends QueryCtrl {
 
@@ -29,7 +34,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.target.collection = this.target.collection ||
       uiSegmentSrv.newFake('select collection');
     this.target.tags = this.target.tags || [];
-    this.target.functions = this.target.functions || [];
+    this.target.functions = this.target.functions || [DEFAULT_FUN];
     this.target.metric = this.target.metric || [];
 
     this.new_tag = uiSegmentSrv.newPlusButton();

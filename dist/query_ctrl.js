@@ -3,7 +3,7 @@
 System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk'], function (_export, _context) {
   "use strict";
 
-  var _, QueryCtrl, _createClass, AVAILABLE_FUNCTIONS, DalmatinerQueryCtrl;
+  var _, QueryCtrl, _createClass, AVAILABLE_FUNCTIONS, DEFAULT_FUN, DalmatinerQueryCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -61,6 +61,11 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
       }();
 
       AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] }, { name: 'combine_avg', fun: 'avg', spec: [] }, { name: 'combine_sum', fun: 'sum', spec: [] }, { name: 'combine_min', fun: 'min', spec: [] }, { name: 'combine_max', fun: 'max', spec: [] }, { name: 'derivate', spec: [] }, { name: 'confidence', spec: [] }, { name: 'multiply', spec: [{ type: 'number', default: '1' }] }, { name: 'divide', spec: [{ type: 'number', default: '1' }] }];
+      DEFAULT_FUN = {
+        name: 'avg',
+        args: ['$auto'],
+        spec: _.find(AVAILABLE_FUNCTIONS, { name: 'avg' }).spec
+      };
 
       _export('DalmatinerQueryCtrl', DalmatinerQueryCtrl = function (_QueryCtrl) {
         _inherits(DalmatinerQueryCtrl, _QueryCtrl);
@@ -75,7 +80,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
 
           _this.target.collection = _this.target.collection || uiSegmentSrv.newFake('select collection');
           _this.target.tags = _this.target.tags || [];
-          _this.target.functions = _this.target.functions || [];
+          _this.target.functions = _this.target.functions || [DEFAULT_FUN];
           _this.target.metric = _this.target.metric || [];
 
           _this.new_tag = uiSegmentSrv.newPlusButton();
