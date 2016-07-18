@@ -351,6 +351,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
               }
             }
 
+            auto_interval = interval;
             if (/^[0-9]+s$/.exec(interval) && parseInt(interval) < 30) auto_interval = '30s';
 
             return q.beginningAt(range.from).endingAt(range.to).with('interval', interval).with('auto', auto_interval).toString();

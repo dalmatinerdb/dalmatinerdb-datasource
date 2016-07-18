@@ -56,6 +56,7 @@ export class DalmatinerDatasource {
         queryFields(q, fields);
     }
 
+    auto_interval = interval;
     if (/^[0-9]+s$/.exec(interval) && parseInt(interval) < 30)
       auto_interval = '30s';
 
