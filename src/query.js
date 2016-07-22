@@ -16,6 +16,16 @@ class DalmatinerQueryCondition {
     return new DalmatinerQueryCondition('or', this, other);
   }
 
+  sourceFilter() {
+    if (this.op === 'eq') {
+      var [tag, value] = this.args;
+      if (_.isEqual(tag, ["dl", "source"])) {
+        return {'enabled': true, value};
+      }
+    }
+    return  {'enabled': false, 'value': ''};
+  }
+
   toString() {
     var tag, value, a, b;
     switch (this.op) {
@@ -82,13 +92,28 @@ class DalmatinerSelector {
     return this;
   }
 
+  // Note: This is a workaround for the fact that we cannot have wildcards as
+  // well as dimensions.  If `dl:source` is part of the predicate criteria,
+  // the query is rewritten to the traditional BUCKET form using the predicate
+  // and avoiding the need for dimension query.
   toString() {
-    var metric = this._encodeMetric(),
-        collection = this._encodeCollection(),
-        str = `${metric} IN ${collection}`;
-    if (this.condition) {
-      str += ` WHERE ${this.condition}`;
+    let sourceFilter = this.condition && this.condition.sourceFilter();
+    let metric = this._encodeMetric();
+
+    var str = '';
+
+    if (sourceFilter && sourceFilter.enabled) {
+      let bucket = sourceFilter.value.substring(0, 2);
+      str = `'${sourceFilter.value}'.${metric} BUCKET '${bucket}'`
+    } else {
+      let collection = this._encodeCollection();
+      str = `${metric} IN ${collection}`;
+
+      if (this.condition) {
+        str += ` WHERE ${this.condition}`;
+      }
     }
+
     return str;
   }
 
@@ -98,7 +123,10 @@ class DalmatinerSelector {
 
   _encodeMetric() {
     return _.map(this.metric, function(part) {
-      return `'${part}'`;
+      if (part === '*')
+        return '*';
+      else
+        return `'${part}'`;
     }).join('.');
   }
 
@@ -128,7 +156,7 @@ export class DalmatinerQuery {
     this.collection = c.value ? c.value : c.toString();
     return this;
   }
-  
+
   select(m) {
     if (! this.collection)
       throw new Error("You need to set collection (from statement) before selecting metric");
