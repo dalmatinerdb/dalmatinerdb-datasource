@@ -16,11 +16,11 @@ describe('DalmatinerQuery', function() {
   beforeEach(function() {
     query = new DalmatinerQuery();
   });
-  
+
   describe('#equals', function() {
 
     it('should build a condition with name-space', function() {
-      var c = DalmatinerQuery.equals(['dl', 'source'], 'agent1'); 
+      var c = DalmatinerQuery.equals(['dl', 'source'], 'agent1');
       expect('' + c).to.be.equal("dl:'source' = 'agent1'");
     });
 
@@ -41,6 +41,27 @@ describe('DalmatinerQuery', function() {
       expect('' + c).to.be.equal("label:'production' = '' OR label:'web' = ''");
     });
   });
+
+  describe('#wildcards', function() {
+
+    it('should not quote wildcards', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', '*']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.* IN 'myorg'");
+    });
+
+    it('should workaround limitations on wildcard + dimensions', function() {
+      var c = DalmatinerQuery.equals(['dl', 'source'], 'finger');
+      query.from('myorg')
+        .select(['base', 'cpu', '*'])
+        .where(c);
+
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'finger'.'base'.'cpu'.* BUCKET 'fi'");
+    });
+  });
+
 
   describe('#present', function() {
 
@@ -77,7 +98,7 @@ describe('DalmatinerQuery', function() {
     });
 
   });
-  
+
   describe('#apply', function() {
 
     it('should apply function on active selection', function() {
@@ -120,7 +141,7 @@ describe('DalmatinerQuery', function() {
       expect(query.toUserString()).to.be
         .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' IN 'myorg'), 30s)");
     });
-    
+
     it('should be applied only to last selection', function() {
       query.from('myorg')
         .select(['base', 'cpu', 'user'])
