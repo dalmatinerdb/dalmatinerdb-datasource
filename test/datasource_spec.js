@@ -25,7 +25,7 @@ describe('DalmatinerDatasource', function() {
           collection: {value: 'dataloop_org'},
           metric: [{value: 'base'}, {value: 'cpu'}]}]
       });
-      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
+      expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
     }); 
   });
 
@@ -37,7 +37,7 @@ describe('DalmatinerDatasource', function() {
         collection: {value: 'dataloop_org'},
         metric: [{value: 'base'}, {value: 'cpu'}]
       });
-      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org'");
+      expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org'");
     });
 
     it('should create a query, that include tags', function() {
@@ -52,7 +52,7 @@ describe('DalmatinerDatasource', function() {
                    {type: "condition", value: 'OR'},
                    {type: "key", value: '["tag","staging"]'}, eq, empty]
           });
-      expect(q).to.be.equal("SELECT 'base'.'cpu' IN 'dataloop_org' WHERE tag:'production' = '' AND tag:'web' = '' OR tag:'staging' = ''");
+      expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' WHERE tag:'production' = '' AND tag:'web' = '' OR tag:'staging' = ''");
     });
   });
 
