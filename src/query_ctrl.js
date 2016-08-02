@@ -10,12 +10,12 @@ const AVAILABLE_FUNCTIONS = [
   {name: 'max', spec: [{type: 'time', default: '$interval'}]},
   {name: 'combine_avg', fun: 'avg', spec: []},
   {name: 'combine_sum', fun: 'sum', spec: []},
-  {name: 'combine_min', fun: 'min', spec: []},
-  {name: 'combine_max', fun: 'max', spec: []},
+  //{name: 'combine_min', fun: 'min', spec: []},
+  //{name: 'combine_max', fun: 'max', spec: []},
   {name: 'derivate', spec: []},
   {name: 'confidence', spec: []},
-  {name: 'multiply', spec: [{type: 'number', default: '1'}]},
-  {name: 'divide', spec: [{type: 'number', default: '1'}]}
+  //{name: 'multiply', spec: [{type: 'number', default: '1'}]},
+  //{name: 'divide', spec: [{type: 'number', default: '1'}]}
 ];
 
 const DEFAULT_FUN = {

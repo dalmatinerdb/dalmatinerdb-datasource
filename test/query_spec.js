@@ -48,7 +48,7 @@ describe('DalmatinerQuery', function() {
       query.from('myorg')
         .select(['base', 'cpu', '*']);
       expect(query.toUserString()).to.be
-        .equal("SELECT 'base'.'cpu'.* IN 'myorg'");
+        .equal("SELECT 'base'.'cpu'.* FROM 'myorg'");
     });
 
     it('should workaround limitations on wildcard + dimensions', function() {
@@ -77,7 +77,7 @@ describe('DalmatinerQuery', function() {
       query.from('myorg')
         .select(['base', 'cpu', 'system']);
       expect(query.toUserString()).to.be
-        .equal("SELECT 'base'.'cpu'.'system' IN 'myorg'");
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'myorg'");
     });
 
     it('should create multi part query when called multiple times', function() {
@@ -85,7 +85,7 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'cpu', 'system'])
         .select(['base', 'cpu', 'user']);
       expect(query.toUserString()).to.be
-        .equal("SELECT 'base'.'cpu'.'system' IN 'myorg', 'base'.'cpu'.'user' IN 'myorg'");
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'myorg', 'base'.'cpu'.'user' FROM 'myorg'");
     });
 
     it('should create selector for most recent collection', function() {
@@ -94,7 +94,7 @@ describe('DalmatinerQuery', function() {
         .from('second-org')
         .select(['base', 'cpu', 'user']);
       expect(query.toUserString()).to.be
-        .equal("SELECT 'base'.'cpu'.'system' IN 'first-org', 'base'.'cpu'.'user' IN 'second-org'");
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'first-org', 'base'.'cpu'.'user' FROM 'second-org'");
     });
 
   });
@@ -106,7 +106,7 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'network', 'eth0', 'sent'])
         .apply('derivate');
       expect(query.toUserString()).to.be
-        .equal("SELECT derivate('base'.'network'.'eth0'.'sent' IN 'myorg')");
+        .equal("SELECT derivate('base'.'network'.'eth0'.'sent' FROM 'myorg')");
     });
 
     it('should support function with extra argument', function() {
@@ -114,7 +114,7 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'cpu'])
         .apply('avg', ['30s']);
       expect(query.toUserString()).to.be
-        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+        .equal("SELECT avg('base'.'cpu' FROM 'myorg', 30s)");
     });
 
     it('should expand variables in function arguments', function() {
@@ -123,7 +123,7 @@ describe('DalmatinerQuery', function() {
         .with('interval', '30s')
         .apply('avg', ['$interval']);
       expect(query.toUserString()).to.be
-        .equal("SELECT avg('base'.'cpu' IN 'myorg', 30s)");
+        .equal("SELECT avg('base'.'cpu' FROM 'myorg', 30s)");
     });
 
     it('should fail when variable is not defined', function() {
@@ -139,7 +139,7 @@ describe('DalmatinerQuery', function() {
         .apply('derivate')
         .apply('sum', ['30s']);
       expect(query.toUserString()).to.be
-        .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' IN 'myorg'), 30s)");
+        .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' FROM 'myorg'), 30s)");
     });
 
     it('should be applied only to last selection', function() {
@@ -150,9 +150,9 @@ describe('DalmatinerQuery', function() {
         .select(['base', 'cpu', 'idle'])
         .apply('min', []);
       expect(query.toUserString()).to.be.equal(
-        "SELECT 'base'.'cpu'.'user' IN 'myorg', " +
-          "max('base'.'cpu'.'system' IN 'myorg'), " +
-          "min('base'.'cpu'.'idle' IN 'myorg')"
+        "SELECT 'base'.'cpu'.'user' FROM 'myorg', " +
+          "max('base'.'cpu'.'system' FROM 'myorg'), " +
+          "min('base'.'cpu'.'idle' FROM 'myorg')"
       );
     });
 

@@ -97,18 +97,16 @@ class DalmatinerSelector {
   // the query is rewritten to the traditional BUCKET form using the predicate
   // and avoiding the need for dimension query.
   toString() {
-    let sourceFilter = this.condition && this.condition.sourceFilter();
-    let metric = this._encodeMetric();
-
-    var str = '';
+    var metric = this._encodeMetric(),
+        sourceFilter = this.condition && this.condition.sourceFilter(),
+        str;
 
     if (sourceFilter && sourceFilter.enabled) {
       let bucket = sourceFilter.value.substring(0, 2);
       str = `'${sourceFilter.value}'.${metric} BUCKET '${bucket}'`
     } else {
       let collection = this._encodeCollection();
-      str = `${metric} IN ${collection}`;
-
+      str = `${metric} FROM ${collection}`;
       if (this.condition) {
         str += ` WHERE ${this.condition}`;
       }
@@ -129,7 +127,6 @@ class DalmatinerSelector {
         return `'${part}'`;
     }).join('.');
   }
-
 }
 
 

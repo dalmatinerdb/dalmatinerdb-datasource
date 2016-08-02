@@ -215,18 +215,16 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "toString",
           value: function toString() {
-            var sourceFilter = this.condition && this.condition.sourceFilter();
-            var metric = this._encodeMetric();
-
-            var str = '';
+            var metric = this._encodeMetric(),
+                sourceFilter = this.condition && this.condition.sourceFilter(),
+                str;
 
             if (sourceFilter && sourceFilter.enabled) {
               var bucket = sourceFilter.value.substring(0, 2);
               str = "'" + sourceFilter.value + "'." + metric + " BUCKET '" + bucket + "'";
             } else {
               var collection = this._encodeCollection();
-              str = metric + " IN " + collection;
-
+              str = metric + " FROM " + collection;
               if (this.condition) {
                 str += " WHERE " + this.condition;
               }
