@@ -60,9 +60,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         };
       }();
 
-      AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] },
-      //{name: 'combine_avg', fun: 'avg', spec: []},
-      { name: 'combine_sum', fun: 'sum', spec: [] },
+      AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] }, { name: 'combine_avg', fun: 'avg', spec: [] }, { name: 'combine_sum', fun: 'sum', spec: [] },
       //{name: 'combine_min', fun: 'min', spec: []},
       //{name: 'combine_max', fun: 'max', spec: []},
       { name: 'derivate', spec: [] }, { name: 'confidence', spec: [] }];
