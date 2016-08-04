@@ -122,13 +122,12 @@ class DalmatinerSelector {
   _encodeMetric() {
     return _.map(this.metric, function(part) {
       if (part === '*')
-        return '*';
+        return `${part}`;
       else
         return `'${part}'`;
     }).join('.');
   }
 }
-
 
 export class DalmatinerQuery {
 
@@ -159,7 +158,7 @@ export class DalmatinerQuery {
       throw new Error("You need to set collection (from statement) before selecting metric");
     var selector = new DalmatinerSelector(this.collection, m);
     this.selectors.push(selector);
-    this.parts.push(selector);
+    this.parts.push([selector, '']);
     this.active = this.parts.length - 1;
     return this;
   }
@@ -187,15 +186,21 @@ export class DalmatinerQuery {
     return this;
   }
 
+  aliasBy(alias) {
+    var [part, _] = this.parts[this.active];
+    this.parts[this.active] = [part, alias];
+    return this;
+  }
+
   apply(fun, args = []) {
     if (_.isUndefined(this.active))
       throw new Error("You need to select something before you can apply functions");
 
-    var part = this.parts[this.active],
+    var [part, alias] = this.parts[this.active],
         fargs = [part].concat(args),
         f = new DalmatinerFunction(fun, fargs, this.variables);
 
-    this.parts[this.active] = f;
+    this.parts[this.active] = [f, alias];
     return this;
   }
 
@@ -208,7 +213,7 @@ export class DalmatinerQuery {
   }
 
   toUserString() {
-    return 'SELECT ' + this.parts.join(', ');
+    return 'SELECT ' + this._encodeAliases().join(', ');
   }
 
   /**
@@ -219,5 +224,15 @@ export class DalmatinerQuery {
     var ending = this.ending.utc().format("YYYY-MM-DD HH:mm:ss"),
         duration = Math.round((this.ending - this.beginning) / 1000);
     return `BEFORE "${ending}" FOR ${duration}s`;
+  }
+
+  _encodeAliases() {
+    return this.parts.map(p => {
+      let [part, alias] = p;
+      if (alias)
+        return `${part} AS ${alias}`;
+      else
+        return part.toString();
+    });
   }
 };

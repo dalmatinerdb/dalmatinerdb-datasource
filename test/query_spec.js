@@ -157,4 +157,37 @@ describe('DalmatinerQuery', function() {
     });
 
   });
+
+  describe('#alias', function() {
+
+    it('should alias simple selectors with from statement', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', 'system'])
+        .aliasBy('$1');
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'myorg' AS $1");
+    });
+
+    it('should alias chained functions', function() {
+      query.from('myorg')
+        .select(['base', 'network', 'eth0', 'sent'])
+        .apply('derivate')
+        .apply('sum', ['30s'])
+        .aliasBy('$1');
+      expect(query.toUserString()).to.be
+        .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' FROM 'myorg'), 30s) AS $1");
+    });
+
+    it('should only alias selector for most recent collection', function() {
+      query.from('first-org')
+        .select(['base', 'cpu', 'system'])
+        .from('second-org')
+        .select(['base', 'cpu', 'user'])
+        .aliasBy('$1');
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'first-org', 'base'.'cpu'.'user' FROM 'second-org' AS $1");
+    });
+
+  });
+
 });

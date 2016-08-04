@@ -230,6 +230,10 @@ function queryFields(q, fields) {
     q.apply(fn.fun || fn.name, fn.args);
   });
 
+  if (! _.isEmpty(fields.alias)) {
+    q.aliasBy(fields.alias);
+  }
+
   return q;
 }
 

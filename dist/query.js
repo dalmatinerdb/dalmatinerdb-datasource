@@ -241,7 +241,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "_encodeMetric",
           value: function _encodeMetric() {
             return _.map(this.metric, function (part) {
-              if (part === '*') return '*';else return "'" + part + "'";
+              if (part === '*') return "" + part;else return "'" + part + "'";
             }).join('.');
           }
         }]);
@@ -270,7 +270,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
             if (!this.collection) throw new Error("You need to set collection (from statement) before selecting metric");
             var selector = new DalmatinerSelector(this.collection, m);
             this.selectors.push(selector);
-            this.parts.push(selector);
+            this.parts.push([selector, '']);
             this.active = this.parts.length - 1;
             return this;
           }
@@ -302,17 +302,31 @@ System.register(["lodash", "moment"], function (_export, _context) {
             return this;
           }
         }, {
+          key: "aliasBy",
+          value: function aliasBy(alias) {
+            var _parts$active = _slicedToArray(this.parts[this.active], 2);
+
+            var part = _parts$active[0];
+            var _ = _parts$active[1];
+
+            this.parts[this.active] = [part, alias];
+            return this;
+          }
+        }, {
           key: "apply",
           value: function apply(fun) {
             var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
             if (_.isUndefined(this.active)) throw new Error("You need to select something before you can apply functions");
 
-            var part = this.parts[this.active],
-                fargs = [part].concat(args),
-                f = new DalmatinerFunction(fun, fargs, this.variables);
+            var _parts$active2 = _slicedToArray(this.parts[this.active], 2);
 
-            this.parts[this.active] = f;
+            var part = _parts$active2[0];
+            var alias = _parts$active2[1];
+            var fargs = [part].concat(args);
+            var f = new DalmatinerFunction(fun, fargs, this.variables);
+
+            this.parts[this.active] = [f, alias];
             return this;
           }
         }, {
@@ -323,7 +337,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "toUserString",
           value: function toUserString() {
-            return 'SELECT ' + this.parts.join(', ');
+            return 'SELECT ' + this._encodeAliases().join(', ');
           }
         }, {
           key: "_encodeRange",
@@ -331,6 +345,18 @@ System.register(["lodash", "moment"], function (_export, _context) {
             var ending = this.ending.utc().format("YYYY-MM-DD HH:mm:ss"),
                 duration = Math.round((this.ending - this.beginning) / 1000);
             return "BEFORE \"" + ending + "\" FOR " + duration + "s";
+          }
+        }, {
+          key: "_encodeAliases",
+          value: function _encodeAliases() {
+            return this.parts.map(function (p) {
+              var _p = _slicedToArray(p, 2);
+
+              var part = _p[0];
+              var alias = _p[1];
+
+              if (alias) return part + " AS " + alias;else return part.toString();
+            });
           }
         }], [{
           key: "equals",
