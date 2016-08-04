@@ -53,7 +53,7 @@
 
     <div class="gf-form">
       <label class="gf-form-label query-keyword">SELECT</label>
-      <div ng-repeat="segment in ctrl.target.metric" role="meuitem">
+      <div ng-repeat="segment in ctrl.target.metric| to_trusted" role="meuitem">
         <metric-segment
           segment="segment"
           get-options="ctrl.getMetricOptionsAt($index)"

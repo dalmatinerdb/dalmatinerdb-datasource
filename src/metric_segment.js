@@ -4,10 +4,19 @@ import angular from 'angular';
 
 // Component copied from: grafana/public/app/core/directives/metric_segment.js
 
-angular
-  .module('grafana.directives')
-  .directive('dalmatinerMetricSegment', function($compile, $sce) {
+var mod = angular.module('grafana.directives');
 
+mod.filter('to_trusted', [
+    '$sce',
+    function($sce) {
+      return function(values, type) {
+        values.forEach(v => v.html = $sce.getTrustedHtml(v.html));
+        return values;
+      }
+    }
+]);
+
+mod.directive('dalmatinerMetricSegment', function($compile, $sce) {
     var inputTemplate = '<input type="text" data-provide="typeahead" ' +
       ' class="gf-form-input input-medium"' +
       ' spellcheck="false" style="display:none"></input>';

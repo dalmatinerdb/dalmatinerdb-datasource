@@ -3,7 +3,7 @@
 System.register(['lodash', 'jquery', 'angular'], function (_export, _context) {
   "use strict";
 
-  var _, $, angular;
+  var _, $, angular, mod;
 
   return {
     setters: [function (_lodash) {
@@ -14,11 +14,19 @@ System.register(['lodash', 'jquery', 'angular'], function (_export, _context) {
       angular = _angular.default;
     }],
     execute: function () {
+      mod = angular.module('grafana.directives');
 
-      // Component copied from: grafana/public/app/core/directives/metric_segment.js
 
-      angular.module('grafana.directives').directive('dalmatinerMetricSegment', function ($compile, $sce) {
+      mod.filter('to_trusted', ['$sce', function ($sce) {
+        return function (values, type) {
+          values.forEach(function (v) {
+            return v.html = $sce.getTrustedHtml(v.html);
+          });
+          return values;
+        };
+      }]);
 
+      mod.directive('dalmatinerMetricSegment', function ($compile, $sce) {
         var inputTemplate = '<input type="text" data-provide="typeahead" ' + ' class="gf-form-input input-medium"' + ' spellcheck="false" style="display:none"></input>';
 
         var linkTemplate = '<a class="gf-form-label" ng-class="segment.cssClass" ' + 'tabindex="1" give-focus="segment.focus" ng-bind-html="segment.html"></a>';
