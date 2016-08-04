@@ -23,7 +23,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
         var r = _ref9.r;
 
         return {
-          target: n,
+          target: n.replace(/'/g, ""),
           datapoints: timestampPoints(v, start, r)
         };
       }) };
