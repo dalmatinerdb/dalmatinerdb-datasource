@@ -167,7 +167,7 @@ function decode_series(res) {
       start = s * 1000;
   return {data: (d || []).map(({n, v, r}) => {
     return {
-      target: n,
+      target: n.replace(/'/g, ""),
       datapoints: timestampPoints(v, start, r)
     };
   })};
