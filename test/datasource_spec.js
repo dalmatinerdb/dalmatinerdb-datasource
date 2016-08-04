@@ -26,7 +26,7 @@ describe('DalmatinerDatasource', function() {
           metric: [{value: 'base'}, {value: 'cpu'}]}]
       });
       expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
-    }); 
+    });
   });
 
   describe('#getSimplifiedQuery', function() {
@@ -40,7 +40,7 @@ describe('DalmatinerDatasource', function() {
       expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org'");
     });
 
-    it('should create a query, that include tags', function() {
+    it('should create a query, that includes tags', function() {
       var eq = {type: 'operator', value: '='},
           empty = {type: 'value', value: '', fake: true},
           q = ds.getSimplifiedQuery({
@@ -53,6 +53,18 @@ describe('DalmatinerDatasource', function() {
                    {type: "key", value: '["dl","hostname"]'}, eq, {type: "value", value: "dlstagn1"}]
           });
       expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' WHERE label:'production' AND label:'web' OR dl:'hostname' = 'dlstagn1'");
+
+    });
+
+    it('should create a query, that includes an alias', function() {
+      var eq = {type: 'operator', value: '='},
+          empty = {type: 'value', value: '', fake: true},
+          q = ds.getSimplifiedQuery({
+            collection: {value: 'dataloop_org'},
+            metric: [{value: 'base'}, {value: 'cpu'}],
+            alias: '$1'
+          });
+      expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' AS $1");
 
     });
   });
@@ -85,7 +97,7 @@ describe('DalmatinerDatasource', function() {
       .respondingTo('/collections/myorg/namespaces//tags')
       .with(["region", "datacenter"])
       .respondingTo('/collections/myorg/namespaces/custom/tags')
-      .with(["kernel"])    
+      .with(["kernel"])
       .then(function(ds, report) {
 
         it('should return list of tags with namespaces', function(done) {
@@ -173,7 +185,7 @@ function givenDatasource() {
       settings = {url: ''},
       srv = {datasourceRequest: stub},
       ds = new DalmatinerDatasource(settings, Promise, srv);
-  
+
   return {
     respondingTo: function (path) {
       expectation = stub.withArgs(sinon.match.has('url', path));
@@ -188,7 +200,7 @@ function givenDatasource() {
       function report(done) {
         return function cb(err) {
           console.log('Error reporter triggered');
-          if (err === stubErr) {          
+          if (err === stubErr) {
             err = new Error(stub.lastCall);
           }
           done(err);
