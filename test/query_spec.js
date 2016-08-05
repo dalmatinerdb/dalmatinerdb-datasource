@@ -42,6 +42,27 @@ describe('DalmatinerQuery', function() {
     });
   });
 
+  describe('#wildcards', function() {
+
+    it('should not quote wildcards', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', '*']);
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.* FROM 'myorg'");
+    });
+
+    it('should workaround limitations on wildcard + dimensions', function() {
+      var c = DalmatinerQuery.equals(['dl', 'source'], 'finger');
+      query.from('myorg')
+        .select(['base', 'cpu', '*'])
+        .where(c);
+
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'finger'.'base'.'cpu'.* BUCKET 'fi'");
+    });
+  });
+
+
   describe('#present', function() {
 
     it('should build a condition checking presence of a tag', function() {

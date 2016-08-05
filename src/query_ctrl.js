@@ -8,7 +8,7 @@ const AVAILABLE_FUNCTIONS = [
   {name: 'sum', spec: [{type: 'time', default: '$interval'}]},
   {name: 'min', spec: [{type: 'time', default: '$interval'}]},
   {name: 'max', spec: [{type: 'time', default: '$interval'}]},
-  //{name: 'combine_avg', fun: 'avg', spec: []},
+  {name: 'combine_avg', fun: 'avg', spec: []},
   {name: 'combine_sum', fun: 'sum', spec: []},
   //{name: 'combine_min', fun: 'min', spec: []},
   //{name: 'combine_max', fun: 'max', spec: []},
