@@ -167,7 +167,7 @@ function decode_series(res) {
       start = s * 1000;
   return {data: (d || []).map(({n, v, r}) => {
     return {
-      target: n,
+      target: n.replace(/'/g, ""),
       datapoints: timestampPoints(v, start, r)
     };
   })};
@@ -229,6 +229,10 @@ function queryFields(q, fields) {
   _.each(fields.functions, function (fn) {
     q.apply(fn.fun || fn.name, fn.args);
   });
+
+  if (! _.isEmpty(fields.alias)) {
+    q.aliasBy(fields.alias);
+  }
 
   return q;
 }

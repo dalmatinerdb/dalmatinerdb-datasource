@@ -53,7 +53,7 @@
 
     <div class="gf-form">
       <label class="gf-form-label query-keyword">SELECT</label>
-      <div ng-repeat="segment in ctrl.target.metric" role="meuitem">
+      <div ng-repeat="segment in ctrl.target.metric| to_trusted" role="meuitem">
         <metric-segment
           segment="segment"
           get-options="ctrl.getMetricOptionsAt($index)"
@@ -89,6 +89,13 @@
       <div class="gf-form-label gf-form-label--grow"></div>
     </div>
 
+  </div>
+
+  <div class="gf-form-inline">
+    <div class="gf-form max-width-30">
+      <label class="gf-form-label query-keyword">ALIAS</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.alias" spellcheck='false' placeholder="Naming pattern" ng-blur="ctrl.refresh()">
+    </div>
   </div>
 
 </query-editor-row>
