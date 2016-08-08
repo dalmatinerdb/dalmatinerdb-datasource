@@ -77,12 +77,11 @@
     </div>
 
     <div class="gf-form">
-      <metric-segment
-        segment="ctrl.new_func"
-        get-options="ctrl.getAvailableFunctions()"
-        on-change="ctrl.addFunction()"
-        title="Add new function"
-      />
+      <label class="dropdown"
+        dropdown-typeahead="ctrl.functionsSubMenu"
+        dropdown-typeahead-on-select="ctrl.addFunction($item, $subItem)"
+        title="Add new function">
+      </label>
     </div>
 
     <div class="gf-form gf-form--grow">

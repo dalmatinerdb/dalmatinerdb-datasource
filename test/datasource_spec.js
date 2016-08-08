@@ -26,7 +26,7 @@ describe('DalmatinerDatasource', function() {
           metric: [{value: 'base'}, {value: 'cpu'}]}]
       });
       expect(q).to.be.equal("SELECT 'base'.'cpu' FROM 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
-    }); 
+    });
   });
 
   describe('#getSimplifiedQuery', function() {
@@ -85,7 +85,7 @@ describe('DalmatinerDatasource', function() {
       .respondingTo('/collections/myorg/namespaces//tags')
       .with(["region", "datacenter"])
       .respondingTo('/collections/myorg/namespaces/custom/tags')
-      .with(["kernel"])    
+      .with(["kernel"])
       .then(function(ds, report) {
 
         it('should return list of tags with namespaces', function(done) {
@@ -160,6 +160,33 @@ describe('DalmatinerDatasource', function() {
         });
       });
   });
+
+  describe('#getFunctions', function(){
+
+    givenDatasource()
+      .respondingTo('/functions')
+      .with([
+          { "name": "quotient", "combiner_type": "metric", "signature": [] },
+          { "name": "confidence", "combiner_type": "none", "signature": ["metric"] },
+          { "name": "divide", "combiner_type": "none", "signature": ["metric", "integer"] },
+          { "name": "avg", "combiner_type": "none", "signature": ["metric", "time"] }
+      ])
+      .then(function(ds) {
+
+        it('should return functions categorized and sorted', function(done) {
+          ds.getFunctions()
+            .then(function (funs) {
+              expect(funs).to.be.deep.equal([
+                  { category: "Aggregate", "name": "avg", "fun": "avg", "spec": [{"default": "$interval", "type": "time"}] },
+                  { category: "Arithmetic", "name": "divide", "fun": "divide", "spec": [{"type": "number", "default": "1"}] },
+                  { category: "Combine", "name": "quotient", "fun": "quotient", "spec": [] },
+                  { category: "Transform", "name": "confidence", "fun": "confidence", "spec": [] }
+              ]);
+              done();
+            }).catch(done);
+        });
+      });
+  });
 });
 
 function wrong_call(arg) {
@@ -173,7 +200,7 @@ function givenDatasource() {
       settings = {url: ''},
       srv = {datasourceRequest: stub},
       ds = new DalmatinerDatasource(settings, Promise, srv);
-  
+
   return {
     respondingTo: function (path) {
       expectation = stub.withArgs(sinon.match.has('url', path));
@@ -188,7 +215,7 @@ function givenDatasource() {
       function report(done) {
         return function cb(err) {
           console.log('Error reporter triggered');
-          if (err === stubErr) {          
+          if (err === stubErr) {
             err = new Error(stub.lastCall);
           }
           done(err);
