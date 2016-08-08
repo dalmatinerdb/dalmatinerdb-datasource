@@ -135,7 +135,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         }, {
           key: 'getTagOperators',
           value: function getTagOperators() {
-            return [this._newOperator('=')];
+            return [this._newOperator('='), this._newOperator('!=')];
           }
         }, {
           key: 'getTagOptionsAt',

@@ -80,7 +80,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   // Get list of supported tag matching operators, first will be used as default
   getTagOperators() {
-    return [this._newOperator('=')];
+    return [this._newOperator('='), this._newOperator('!=')];
   }
 
   getTagOptionsAt(index) {

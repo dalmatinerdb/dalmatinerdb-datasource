@@ -42,6 +42,32 @@ describe('DalmatinerQuery', function() {
     });
   });
 
+  describe('#not-equals', function() {
+
+    it('should build a condition with name-space', function() {
+      var c = DalmatinerQuery.notEquals(['dl', 'source'], 'agent1');
+      expect('' + c).to.be.equal("dl:'source' != 'agent1'");
+    });
+
+    it('should build a condition without name-space', function() {
+      var c = DalmatinerQuery.notEquals(['', 'custom'], 'some-value');
+      expect('' + c).to.be.equal("'custom' != 'some-value'");
+    });
+
+    it('should build a condition that can be and-ed', function() {
+      var c = DalmatinerQuery.notEquals(['label', 'production'], '')
+            .and(DalmatinerQuery.notEquals(['label', 'web'], ''));
+      expect('' + c).to.be.equal("label:'production' != '' AND label:'web' != ''");
+    });
+
+    it('should build a condition that can be or-ed', function() {
+      var c = DalmatinerQuery.notEquals(['label', 'production'], '')
+            .or(DalmatinerQuery.notEquals(['label', 'web'], ''));
+      expect('' + c).to.be.equal("label:'production' != '' OR label:'web' != ''");
+    });
+  });
+
+
   describe('#present', function() {
 
     it('should build a condition checking presence of a tag', function() {

@@ -254,6 +254,9 @@ function buildCondition(tokens) {
         c = null;
       } else if (key.value == '["dl","tag"]') {
         c = DalmatinerQuery.present(['label', token.value]);
+      } else if (operator.value === "!=") {
+        v = token.value;
+        c = DalmatinerQuery.notEquals(JSON.parse(key.value), v);
       } else {
         v = token.value === '--empty--' ? v = '' : v = token.value;
         c = DalmatinerQuery.equals(JSON.parse(key.value), v);
