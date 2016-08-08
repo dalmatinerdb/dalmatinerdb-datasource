@@ -175,6 +175,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
             _c = null;
           } else if (key.value == '["dl","tag"]') {
             _c = DalmatinerQuery.present(['label', token.value]);
+          } else if (operator.value === "!=") {
+            v = token.value;
+            _c = DalmatinerQuery.notEquals(JSON.parse(key.value), v);
           } else {
             v = token.value === '--empty--' ? v = '' : v = token.value;
             _c = DalmatinerQuery.equals(JSON.parse(key.value), v);

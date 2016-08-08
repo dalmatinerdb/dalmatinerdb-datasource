@@ -109,24 +109,31 @@ System.register(["lodash", "moment"], function (_export, _context) {
                 value = _args[1];
 
                 return this._encodeTag(tag) + " = '" + value + "'";
-              case 'present':
-                var _args2 = _slicedToArray(this.args, 1);
+              case 'neq':
+                var _args2 = _slicedToArray(this.args, 2);
 
                 tag = _args2[0];
+                value = _args2[1];
+
+                return this._encodeTag(tag) + " != '" + value + "'";
+              case 'present':
+                var _args3 = _slicedToArray(this.args, 1);
+
+                tag = _args3[0];
 
                 return this._encodeTag(tag);
               case 'and':
-                var _args3 = _slicedToArray(this.args, 2);
-
-                a = _args3[0];
-                b = _args3[1];
-
-                return a + " AND " + b;
-              case 'or':
                 var _args4 = _slicedToArray(this.args, 2);
 
                 a = _args4[0];
                 b = _args4[1];
+
+                return a + " AND " + b;
+              case 'or':
+                var _args5 = _slicedToArray(this.args, 2);
+
+                a = _args5[0];
+                b = _args5[1];
 
                 return a + " OR " + b;
             }
@@ -338,6 +345,11 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "equals",
           value: function equals(a, b) {
             return new DalmatinerQueryCondition('eq', a, b);
+          }
+        }, {
+          key: "notEquals",
+          value: function notEquals(a, b) {
+            return new DalmatinerQueryCondition('neq', a, b);
           }
         }, {
           key: "present",

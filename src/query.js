@@ -22,6 +22,9 @@ class DalmatinerQueryCondition {
     case ('eq'):
       [tag, value] = this.args;
       return `${this._encodeTag(tag)} = '${value}'`;
+    case ('neq'):
+      [tag, value] = this.args;
+      return `${this._encodeTag(tag)} != '${value}'`;
     case ('present'):
       [tag] = this.args;
       return this._encodeTag(tag);
@@ -116,6 +119,10 @@ export class DalmatinerQuery {
 
   static equals(a, b) {
     return new DalmatinerQueryCondition('eq', a, b);
+  }
+
+  static notEquals(a, b) {
+    return new DalmatinerQueryCondition('neq', a, b);
   }
 
   static present(a) {
