@@ -29,6 +29,22 @@ System.register(["lodash", "./query"], function (_export, _context) {
       }) };
   }
 
+  function decode_function_table(res) {
+    var funTable = res.data.map(function (fun) {
+      if (fun.combiner_type !== 'none') {
+        return { category: 'Combine', name: fun.name, fun: fun.name, spec: [] };
+      } else if (_.isEqual(fun.signature, ['metric'])) {
+        return { category: 'Transform', name: fun.name, fun: fun.name, spec: [] };
+      } else if (_.isEqual(fun.signature, ['metric', 'time'])) {
+        return { category: 'Aggregate', name: fun.name, fun: fun.name, spec: [{ type: 'time', default: '$interval' }] };
+      } else {
+        return { category: 'Arithmetic', name: fun.name, fun: fun.name, spec: [{ type: 'number', default: '1' }] };
+      }
+    });
+
+    return _.sortBy(funTable, ['category', 'name']);
+  }
+
   function timestampPoints(values, start, increment) {
     var r = new Array(values.length);
     for (var i = 0; i < values.length; i++) {
@@ -469,6 +485,11 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
               return _.values(n.children);
             });
+          }
+        }, {
+          key: "getFunctions",
+          value: function getFunctions() {
+            return this._request('/functions').then(decode_function_table);
           }
         }, {
           key: "_request",

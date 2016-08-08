@@ -172,6 +172,33 @@ describe('DalmatinerDatasource', function() {
         });
       });
   });
+
+  describe('#getFunctions', function(){
+
+    givenDatasource()
+      .respondingTo('/functions')
+      .with([
+          { "name": "quotient", "combiner_type": "metric", "signature": [] },
+          { "name": "confidence", "combiner_type": "none", "signature": ["metric"] },
+          { "name": "divide", "combiner_type": "none", "signature": ["metric", "integer"] },
+          { "name": "avg", "combiner_type": "none", "signature": ["metric", "time"] }
+      ])
+      .then(function(ds) {
+
+        it('should return functions categorized and sorted', function(done) {
+          ds.getFunctions()
+            .then(function (funs) {
+              expect(funs).to.be.deep.equal([
+                  { category: "Aggregate", "name": "avg", "fun": "avg", "spec": [{"default": "$interval", "type": "time"}] },
+                  { category: "Arithmetic", "name": "divide", "fun": "divide", "spec": [{"type": "number", "default": "1"}] },
+                  { category: "Combine", "name": "quotient", "fun": "quotient", "spec": [] },
+                  { category: "Transform", "name": "confidence", "fun": "confidence", "spec": [] }
+              ]);
+              done();
+            }).catch(done);
+        });
+      });
+  });
 });
 
 function wrong_call(arg) {

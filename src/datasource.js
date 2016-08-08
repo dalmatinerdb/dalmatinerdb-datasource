@@ -145,6 +145,11 @@ export class DalmatinerDatasource {
       });
   }
 
+  getFunctions() {
+    return this._request('/functions')
+      .then(decode_function_table);
+  }
+
   /*
    * Internal methods
    */
@@ -171,6 +176,22 @@ function decode_series(res) {
       datapoints: timestampPoints(v, start, r)
     };
   })};
+}
+
+function decode_function_table(res) {
+  let funTable = res.data.map(fun => {
+    if (fun.combiner_type !== 'none') {
+      return {category: 'Combine', name: fun.name, fun: fun.name, spec: []};
+    } else if (_.isEqual(fun.signature, ['metric'])) {
+      return {category: 'Transform', name: fun.name, fun: fun.name, spec: []};
+    } else if (_.isEqual(fun.signature, ['metric', 'time'])) {
+      return {category: 'Aggregate', name: fun.name, fun: fun.name, spec: [{type: 'time', default: '$interval'}]};
+    } else {
+      return {category: 'Arithmetic', name: fun.name, fun: fun.name, spec: [{type: 'number', default: '1'}]};
+    }
+  });
+
+  return _.sortBy(funTable, ['category', 'name']);
 }
 
 function timestampPoints(values, start, increment) {

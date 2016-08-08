@@ -3,27 +3,6 @@ import './metric_segment';
 import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 
-const AVAILABLE_FUNCTIONS = [
-  {name: 'avg', spec: [{type: 'time', default: '$interval'}]},
-  {name: 'sum', spec: [{type: 'time', default: '$interval'}]},
-  {name: 'min', spec: [{type: 'time', default: '$interval'}]},
-  {name: 'max', spec: [{type: 'time', default: '$interval'}]},
-  {name: 'combine_avg', fun: 'avg', spec: []},
-  {name: 'combine_sum', fun: 'sum', spec: []},
-  //{name: 'combine_min', fun: 'min', spec: []},
-  //{name: 'combine_max', fun: 'max', spec: []},
-  {name: 'derivate', spec: []},
-  {name: 'confidence', spec: []},
-  //{name: 'multiply', spec: [{type: 'number', default: '1'}]},
-  //{name: 'divide', spec: [{type: 'number', default: '1'}]}
-];
-
-const DEFAULT_FUN = {
-  name: 'avg',
-  args: ['$auto'],
-  spec: _.find(AVAILABLE_FUNCTIONS, {name: 'avg'}).spec
-};
-
 export class DalmatinerQueryCtrl extends QueryCtrl {
 
   constructor($scope, $injector, uiSegmentSrv, $q) {
@@ -34,13 +13,13 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.target.collection = this.target.collection ||
       uiSegmentSrv.newFake('select collection');
     this.target.tags = this.target.tags || [];
-    this.target.functions = this.target.functions || [DEFAULT_FUN];
     this.target.metric = this.target.metric || [];
 
     this.new_tag = uiSegmentSrv.newPlusButton();
     this.new_func = uiSegmentSrv.newPlusButton();
     this.new_func.cssClass = 'query-part';
     this.new_metric_part = uiSegmentSrv.newFake('...');
+    this._getAvailableFunctions();
   }
 
   /**
@@ -61,15 +40,6 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   getTagValues(tagKey) {
     return this.datasource.getTagValues(this.target, tagKey);
-  }
-
-  getAvailableFunctions() {
-    return this.$q.resolve(AVAILABLE_FUNCTIONS.map(function (info) {
-      return {
-        html: info.name,
-        value: info.name
-      };
-    }));
   }
 
   // Get list of supported tag join conditions, first will be used as default
@@ -136,11 +106,11 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
     this.refresh();
   }
 
-  addFunction() {
+  addFunction(category, newFunc) {
 
     var {functions} = this.target,
         name = this.new_func.value,
-        info = this._getFunctionOption(name),
+        info = this._getFunctionOption(category.text, newFunc.value),
         defaults = _.map(info.spec, function(s) {
           return s.default || '';
         });
@@ -210,9 +180,34 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
                                          cssClass: 'query-segment-operator'});
   }
 
-  _getFunctionOption(name) {
-    return _.find(AVAILABLE_FUNCTIONS, {name});
+  _getFunctionOption(category, name) {
+    return _.find(this._availableFunctions, {category, name});
   }
+
+  _getAvailableFunctions() {
+    this.datasource.getFunctions()
+      .then(infos => {
+        this.functionsSubMenu = this._buildFunctionsDropdown(infos);
+        this._availableFunctions = infos;
+      });
+  }
+
+  _buildFunctionsDropdown(infos) {
+    let menu =
+      _.reduce(infos, (memo, info) => {
+        let newMenuItem = {text: info.fun, value: info.fun};
+
+        if (memo[info.category]) {
+          memo[info.category].submenu.push(newMenuItem);
+        } else {
+          memo[info.category] = {text: info.category, submenu: [newMenuItem]};
+        }
+        return memo;
+      }, []);
+
+    return Object.keys(menu).map(key => menu[key]);
+  }
+
 };
 
 DalmatinerQueryCtrl.templateUrl = 'partials/query.editor.html';

@@ -3,7 +3,7 @@
 System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk'], function (_export, _context) {
   "use strict";
 
-  var _, QueryCtrl, _createClass, AVAILABLE_FUNCTIONS, DEFAULT_FUN, DalmatinerQueryCtrl;
+  var _, QueryCtrl, _createClass, DalmatinerQueryCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -60,16 +60,6 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         };
       }();
 
-      AVAILABLE_FUNCTIONS = [{ name: 'avg', spec: [{ type: 'time', default: '$interval' }] }, { name: 'sum', spec: [{ type: 'time', default: '$interval' }] }, { name: 'min', spec: [{ type: 'time', default: '$interval' }] }, { name: 'max', spec: [{ type: 'time', default: '$interval' }] }, { name: 'combine_avg', fun: 'avg', spec: [] }, { name: 'combine_sum', fun: 'sum', spec: [] },
-      //{name: 'combine_min', fun: 'min', spec: []},
-      //{name: 'combine_max', fun: 'max', spec: []},
-      { name: 'derivate', spec: [] }, { name: 'confidence', spec: [] }];
-      DEFAULT_FUN = {
-        name: 'avg',
-        args: ['$auto'],
-        spec: _.find(AVAILABLE_FUNCTIONS, { name: 'avg' }).spec
-      };
-
       _export('DalmatinerQueryCtrl', DalmatinerQueryCtrl = function (_QueryCtrl) {
         _inherits(DalmatinerQueryCtrl, _QueryCtrl);
 
@@ -83,13 +73,13 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
 
           _this.target.collection = _this.target.collection || uiSegmentSrv.newFake('select collection');
           _this.target.tags = _this.target.tags || [];
-          _this.target.functions = _this.target.functions || [DEFAULT_FUN];
           _this.target.metric = _this.target.metric || [];
 
           _this.new_tag = uiSegmentSrv.newPlusButton();
           _this.new_func = uiSegmentSrv.newPlusButton();
           _this.new_func.cssClass = 'query-part';
           _this.new_metric_part = uiSegmentSrv.newFake('...');
+          _this._getAvailableFunctions();
           return _this;
         }
 
@@ -116,16 +106,6 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           key: 'getTagValues',
           value: function getTagValues(tagKey) {
             return this.datasource.getTagValues(this.target, tagKey);
-          }
-        }, {
-          key: 'getAvailableFunctions',
-          value: function getAvailableFunctions() {
-            return this.$q.resolve(AVAILABLE_FUNCTIONS.map(function (info) {
-              return {
-                html: info.name,
-                value: info.name
-              };
-            }));
           }
         }, {
           key: 'getTagConditions',
@@ -194,10 +174,10 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           }
         }, {
           key: 'addFunction',
-          value: function addFunction() {
+          value: function addFunction(category, newFunc) {
             var functions = this.target.functions;
             var name = this.new_func.value;
-            var info = this._getFunctionOption(name);
+            var info = this._getFunctionOption(category.text, newFunc.value);
             var defaults = _.map(info.spec, function (s) {
               return s.default || '';
             });
@@ -278,8 +258,36 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           }
         }, {
           key: '_getFunctionOption',
-          value: function _getFunctionOption(name) {
-            return _.find(AVAILABLE_FUNCTIONS, { name: name });
+          value: function _getFunctionOption(category, name) {
+            return _.find(this._availableFunctions, { category: category, name: name });
+          }
+        }, {
+          key: '_getAvailableFunctions',
+          value: function _getAvailableFunctions() {
+            var _this2 = this;
+
+            this.datasource.getFunctions().then(function (infos) {
+              _this2.functionsSubMenu = _this2._buildFunctionsDropdown(infos);
+              _this2._availableFunctions = infos;
+            });
+          }
+        }, {
+          key: '_buildFunctionsDropdown',
+          value: function _buildFunctionsDropdown(infos) {
+            var menu = _.reduce(infos, function (memo, info) {
+              var newMenuItem = { text: info.fun, value: info.fun };
+
+              if (memo[info.category]) {
+                memo[info.category].submenu.push(newMenuItem);
+              } else {
+                memo[info.category] = { text: info.category, submenu: [newMenuItem] };
+              }
+              return memo;
+            }, []);
+
+            return Object.keys(menu).map(function (key) {
+              return menu[key];
+            });
           }
         }]);
 
