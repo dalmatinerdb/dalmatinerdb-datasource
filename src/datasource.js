@@ -191,7 +191,11 @@ function decode_function_table(res) {
     }
   });
 
-  return _.sortBy(funTable, ['category', 'name']);
+  let comparator = x => {
+    return `${x.category}_${x.name}`;
+  }
+
+  return _.sortBy(_.uniq(funTable, comparator, this), ['category', 'name']);
 }
 
 function timestampPoints(values, start, increment) {

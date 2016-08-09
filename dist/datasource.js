@@ -42,7 +42,11 @@ System.register(["lodash", "./query"], function (_export, _context) {
       }
     });
 
-    return _.sortBy(funTable, ['category', 'name']);
+    var comparator = function comparator(x) {
+      return x.category + "_" + x.name;
+    };
+
+    return _.sortBy(_.uniq(funTable, comparator, this), ['category', 'name']);
   }
 
   function timestampPoints(values, start, increment) {
