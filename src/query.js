@@ -43,9 +43,34 @@ class DalmatinerQueryCondition {
   }
 }
 
+class DalmatinerProjection {
+  constructor() {}
 
-class DalmatinerFunction {
+  aliasBy(alias) {
+    this.alias = alias;
+    return this;
+  }
+
+  shiftBy(timeshift) {
+    this.timeshift = timeshift;
+    return this;
+  }
+
+  encode() {
+    var str = this.toString();
+    if (this.alias) {
+      str += ` AS ${this.alias}`;
+    }
+    if (this.timeshift) {
+      str += ` SHIFT BY ${this.timeshift}`;
+    }
+    return str;
+  }
+}
+
+class DalmatinerFunction extends DalmatinerProjection {
   constructor(fun, args, vars) {
+    super();
     this.fun = fun;
     this.args = args;
     this.vars = vars;
@@ -69,10 +94,10 @@ class DalmatinerFunction {
   }
 }
 
-
-class DalmatinerSelector {
+class DalmatinerSelector extends DalmatinerProjection {
 
   constructor(collection, metric, variables) {
+    super();
     this.collection = collection;
     this.metric = _.map(metric, function (mpart) {
       return mpart.value ? mpart.value : mpart.toString();
@@ -142,7 +167,7 @@ export class DalmatinerQuery {
       throw new Error("You need to set collection (from statement) before selecting metric");
     var selector = new DalmatinerSelector(this.collection, m);
     this.selectors.push(selector);
-    this.parts.push([selector, '']);
+    this.parts.push(selector);
     this.active = this.parts.length - 1;
     return this;
   }
@@ -171,8 +196,12 @@ export class DalmatinerQuery {
   }
 
   aliasBy(alias) {
-    var [part, _] = this.parts[this.active];
-    this.parts[this.active] = [part, alias];
+    this.parts[this.active].aliasBy(alias);
+    return this;
+  }
+
+  shiftBy(timeshift) {
+    this.parts[this.active].shiftBy(timeshift);
     return this;
   }
 
@@ -180,11 +209,11 @@ export class DalmatinerQuery {
     if (_.isUndefined(this.active))
       throw new Error("You need to select something before you can apply functions");
 
-    var [part, alias] = this.parts[this.active],
+    var part = this.parts[this.active],
         fargs = [part].concat(args),
         f = new DalmatinerFunction(fun, fargs, this.variables);
 
-    this.parts[this.active] = [f, alias];
+    this.parts[this.active] = f;
     return this;
   }
 
@@ -197,7 +226,7 @@ export class DalmatinerQuery {
   }
 
   toUserString() {
-    return 'SELECT ' + this._encodeAliases().join(', ');
+    return 'SELECT ' + this._encodeProjections().join(', ');
   }
 
   /**
@@ -210,13 +239,8 @@ export class DalmatinerQuery {
     return `BEFORE "${ending}" FOR ${duration}s`;
   }
 
-  _encodeAliases() {
-    return this.parts.map(p => {
-      let [part, alias] = p;
-      if (alias)
-        return `${part} AS ${alias}`;
-      else
-        return part.toString();
-    });
+  _encodeProjections() {
+    return this.parts.map(p => { return p.encode(); });
   }
+
 };

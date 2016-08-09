@@ -195,4 +195,44 @@ describe('DalmatinerQuery', function() {
 
   });
 
+  describe('#timeshift', function() {
+
+    it('should timeshift simple selectors with from statement', function() {
+      query.from('myorg')
+        .select(['base', 'cpu', 'system'])
+        .shiftBy('1h');
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'myorg' SHIFT BY 1h");
+    });
+
+    it('should timeshift chained functions', function() {
+      query.from('myorg')
+        .select(['base', 'network', 'eth0', 'sent'])
+        .apply('derivate')
+        .apply('sum', ['30s'])
+        .shiftBy('1h');
+      expect(query.toUserString()).to.be
+        .equal("SELECT sum(derivate('base'.'network'.'eth0'.'sent' FROM 'myorg'), 30s) SHIFT BY 1h");
+    });
+
+    it('should only timeshift selector for most recent collection', function() {
+      query.from('first-org')
+        .select(['base', 'cpu', 'system'])
+        .shiftBy('1h')
+        .from('second-org')
+        .select(['base', 'cpu', 'user'])
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'first-org' SHIFT BY 1h, 'base'.'cpu'.'user' FROM 'second-org'");
+    });
+
+    it('should timeshift selectors with an alias applied', function() {
+      query.from('first-org')
+        .select(['base', 'cpu', 'system'])
+        .shiftBy('1h')
+        .aliasBy('$1');
+      expect(query.toUserString()).to.be
+        .equal("SELECT 'base'.'cpu'.'system' FROM 'first-org' AS $1 SHIFT BY 1h");
+    });
+  });
+
 });

@@ -267,6 +267,10 @@ function queryFields(q, fields) {
     q.aliasBy(fields.alias);
   }
 
+  if (! _.isEmpty(fields.timeshift)) {
+    q.shiftBy(fields.timeshift);
+  }
+
   return q;
 }
 

@@ -95,6 +95,12 @@
       <label class="gf-form-label query-keyword">ALIAS</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.alias" spellcheck='false' placeholder="Naming pattern" ng-blur="ctrl.refresh()">
     </div>
+
+    <div class="gf-form max-width-30">
+      <label class="gf-form-label query-keyword">SHIFT BY</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.timeshift" spellcheck='false' placeholder="Time interval" ng-blur="ctrl.refresh()">
+    </div>
+
   </div>
 
 </query-editor-row>
