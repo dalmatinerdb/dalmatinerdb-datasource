@@ -485,7 +485,16 @@ System.register(["lodash", "./query"], function (_export, _context) {
         }, {
           key: "getFunctions",
           value: function getFunctions() {
-            return this._request('/functions').then(decode_function_table);
+            var _this2 = this;
+
+            if (this.functionTable) {
+              return this.$q.resolve(this.functionTable);
+            } else {
+              return this._request('/functions').then(decode_function_table).then(function (ft) {
+                _this2.functionTable = ft;
+                return ft;
+              });
+            }
           }
         }, {
           key: "_request",

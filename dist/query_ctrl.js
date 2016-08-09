@@ -74,7 +74,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           _this.target.collection = _this.target.collection || uiSegmentSrv.newFake('select collection');
           _this.target.tags = _this.target.tags || [];
           _this.target.metric = _this.target.metric || [];
-
+          _this.target.functions = _this.target.functions || [];
           _this.new_tag = uiSegmentSrv.newPlusButton();
           _this.new_func = uiSegmentSrv.newPlusButton();
           _this.new_func.cssClass = 'query-part';
