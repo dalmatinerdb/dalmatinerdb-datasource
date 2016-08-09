@@ -7,6 +7,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
 
   constructor($scope, $injector, uiSegmentSrv, $q) {
     super($scope, $injector);
+
     this.$q = $q;
     this.uiSegmentSrv = uiSegmentSrv;
 
@@ -14,7 +15,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
       uiSegmentSrv.newFake('select collection');
     this.target.tags = this.target.tags || [];
     this.target.metric = this.target.metric || [];
-
+    this.target.functions = this.target.functions || [];
     this.new_tag = uiSegmentSrv.newPlusButton();
     this.new_func = uiSegmentSrv.newPlusButton();
     this.new_func.cssClass = 'query-part';

@@ -146,8 +146,16 @@ export class DalmatinerDatasource {
   }
 
   getFunctions() {
-    return this._request('/functions')
-      .then(decode_function_table);
+    if (this.functionTable) {
+      return this.$q.resolve(this.functionTable);
+    } else {
+      return this._request('/functions')
+        .then(decode_function_table)
+        .then(ft => {
+          this.functionTable = ft;
+          return ft;
+        });
+    }
   }
 
   /*
