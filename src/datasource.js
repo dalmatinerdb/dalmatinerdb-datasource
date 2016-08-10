@@ -253,6 +253,9 @@ function decodeTags(ns, res) {
 }
 
 function queryFields(q, fields) {
+  if (fields.hide)
+    return q;
+
   q.from(fields.collection)
     .select(fields.metric);
 
