@@ -176,14 +176,14 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           key: 'addFunction',
           value: function addFunction(category, newFunc) {
             var functions = this.target.functions;
-            var name = this.new_func.value;
-            var info = this._getFunctionOption(category.text, newFunc.value);
+            var info = this._getFunctionOption(category.text, newFunc.text);
             var defaults = _.map(info.spec, function (s) {
               return s.default || '';
             });
 
             functions.push({
               name: info.name,
+              category: category.text,
               fun: info.fun,
               args: defaults,
               spec: info.spec
@@ -275,7 +275,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
           key: '_buildFunctionsDropdown',
           value: function _buildFunctionsDropdown(infos) {
             var menu = _.reduce(infos, function (memo, info) {
-              var newMenuItem = { text: info.fun, value: info.fun };
+              var newMenuItem = { text: info.name, value: info.fun };
 
               if (memo[info.category]) {
                 memo[info.category].submenu.push(newMenuItem);

@@ -163,6 +163,42 @@ describe('DalmatinerQuery', function() {
 
   });
 
+  describe('#apply-series', function() {
+    let hidden = true;
+
+    it('should not allow references to non-existent series', function() {
+      let q = query.from('myorg')
+                   .select(['base', 'network', 'eth0', 'sent'], 'B');
+      expect(() => { q.applyToSeries('avg', ['#A']) }).to.throw(Error);
+    });
+
+    it('should allow references to selectors', function() {
+      query.from('org')
+        .select(['eth0', 'sent'], 'A')
+        .setVisibility(hidden)
+        .select(['lo', 'sent'], 'B')
+        .applyToSeries('sum', ['#A'])
+        .aliasBy('total');
+
+      expect(query.toUserString()).to.be
+        .equal("SELECT sum('lo'.'sent' FROM 'org', 'eth0'.'sent' FROM 'org') AS total")
+    });
+
+    it('should allow references to function projections', function() {
+      query.from('org')
+        .select(['eth0', 'sent'], 'A')
+        .apply('derivate')
+        .setVisibility(hidden)
+        .select(['lo', 'sent'], 'B')
+        .apply('derivate')
+        .applyToSeries('sum', ['#A'])
+        .aliasBy('total');
+
+      expect(query.toUserString()).to.be
+        .equal("SELECT sum(derivate('lo'.'sent' FROM 'org'), derivate('eth0'.'sent' FROM 'org')) AS total")
+    });
+  });
+
   describe('#alias', function() {
 
     it('should alias simple selectors with from statement', function() {

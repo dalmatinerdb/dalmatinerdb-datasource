@@ -1,6 +1,11 @@
 import _ from "lodash";
 import {DalmatinerQuery} from "./query";
 
+const SERIES = 'Series';
+const COMBINE = 'Combine';
+const ARITHMETIC = 'Arithmetic';
+const AGGREGATE = 'Aggregate';
+const TRANSFORM = 'Transform';
 
 export class DalmatinerDatasource {
 
@@ -187,15 +192,19 @@ function decode_series(res) {
 }
 
 function decode_function_table(res) {
-  let funTable = res.data.map(fun => {
+
+  let funTable = flatMap(res.data, fun => {
     if (fun.combiner_type !== 'none') {
-      return {category: 'Combine', name: fun.name, fun: fun.name, spec: []};
+      return [
+        {category: COMBINE, name: fun.name, fun: fun.name, spec: []},
+        {category: SERIES, name: fun.name, fun: fun.name, spec: [{type: 'text', default: '#A'}]}
+      ];
     } else if (_.isEqual(fun.signature, ['metric'])) {
-      return {category: 'Transform', name: fun.name, fun: fun.name, spec: []};
+      return {category: TRANSFORM, name: fun.name, fun: fun.name, spec: []};
     } else if (_.isEqual(fun.signature, ['metric', 'time'])) {
-      return {category: 'Aggregate', name: fun.name, fun: fun.name, spec: [{type: 'time', default: '$interval'}]};
+      return {category: AGGREGATE, name: fun.name, fun: fun.name, spec: [{type: 'time', default: '$interval'}]};
     } else {
-      return {category: 'Arithmetic', name: fun.name, fun: fun.name, spec: [{type: 'number', default: '1'}]};
+      return {category: ARITHMETIC, name: fun.name, fun: fun.name, spec: [{type: 'number', default: '1'}]};
     }
   });
 
@@ -253,17 +262,18 @@ function decodeTags(ns, res) {
 }
 
 function queryFields(q, fields) {
-  if (fields.hide)
-    return q;
-
   q.from(fields.collection)
-    .select(fields.metric);
+   .select(fields.metric, fields.refId);
 
   if (! _.isEmpty(fields.tags)) {
     q.where(buildCondition(fields.tags));
   }
   _.each(fields.functions, function (fn) {
-    q.apply(fn.fun || fn.name, fn.args);
+    if (fn.category === SERIES) {
+      q.applyToSeries(fn.fun || fn.name, fn.args, fields.refId);
+    } else {
+      q.apply(fn.fun || fn.name, fn.args, fields.refId);
+    }
   });
 
   if (! _.isEmpty(fields.alias)) {
@@ -272,6 +282,10 @@ function queryFields(q, fields) {
 
   if (! _.isEmpty(fields.timeshift)) {
     q.shiftBy(fields.timeshift);
+  }
+
+  if (_.isBoolean(fields.hide)) {
+    q.setVisibility(fields.hide);
   }
 
   return q;
@@ -338,4 +352,8 @@ function assert(condition, message) {
   if (! condition) {
     throw new Error(message);
   }
+}
+
+function flatMap(col, f) {
+  return _.chain(col).map(f).flatten().value();
 }

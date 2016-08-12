@@ -173,15 +173,15 @@ describe('DalmatinerDatasource', function() {
       });
   });
 
-  describe('#getFunctions', function(){
+  describe('#getFunctions', function() {
 
     givenDatasource()
       .respondingTo('/functions')
       .with([
-          { "name": "quotient", "combiner_type": "metric", "signature": [] },
-          { "name": "confidence", "combiner_type": "none", "signature": ["metric"] },
-          { "name": "divide", "combiner_type": "none", "signature": ["metric", "integer"] },
-          { "name": "avg", "combiner_type": "none", "signature": ["metric", "time"] }
+          { 'name': 'quotient', 'combiner_type': 'metric', 'signature': [] },
+          { 'name': 'confidence', 'combiner_type': 'none', 'signature': ['metric'] },
+          { 'name': 'divide', 'combiner_type': 'none', 'signature': ['metric', 'integer'] },
+          { 'name': 'avg', 'combiner_type': 'none', 'signature': ['metric', 'time'] }
       ])
       .then(function(ds) {
 
@@ -189,16 +189,48 @@ describe('DalmatinerDatasource', function() {
           ds.getFunctions()
             .then(function (funs) {
               expect(funs).to.be.deep.equal([
-                  { category: "Aggregate", "name": "avg", "fun": "avg", "spec": [{"default": "$interval", "type": "time"}] },
-                  { category: "Arithmetic", "name": "divide", "fun": "divide", "spec": [{"type": "number", "default": "1"}] },
-                  { category: "Combine", "name": "quotient", "fun": "quotient", "spec": [] },
-                  { category: "Transform", "name": "confidence", "fun": "confidence", "spec": [] }
+                  { category: 'Aggregate', 'name': 'avg', 'fun': 'avg', 'spec': [{'default': '$interval', 'type': 'time'}] },
+                  { category: 'Arithmetic', 'name': 'divide', 'fun': 'divide', 'spec': [{'type': 'number', 'default': '1'}] },
+                  { category: 'Combine', 'name': 'quotient', 'fun': 'quotient', 'spec': [] },
+                  { category: 'Series', 'name': 'quotient', 'fun': 'quotient', 'spec': [{'type': 'text', 'default': '#A'}] },
+                  { category: 'Transform', "name": "confidence", "fun": "confidence", "spec": [] }
               ]);
               done();
             }).catch(done);
         });
       });
   });
+
+  describe('#visibility', function() {
+    var ds = new DalmatinerDatasource({}, Promise, null);
+
+    it('should not result in query when only selector is hidden', function() {
+      var q = ds.getQuery({
+        range: {
+          from: moment("2016-01-10T10:20:00"),
+          to: moment("2016-01-10T11:20:00")},
+        targets: [{
+          hide: true,
+          collection: {value: 'dataloop_org'},
+          metric: [{value: 'base'}, {value: 'cpu'}]}]
+      });
+      expect(q).to.be.equal("");
+    });
+
+    it('should hide the selector when target is hidden', function() {
+      var q = ds.getQuery({
+        range: {
+          from: moment("2016-01-10T10:20:00"),
+          to: moment("2016-01-10T11:20:00")},
+        targets: [
+          { hide: false, collection: {value: 'dataloop_org'}, metric: [{value: 'base'}, {value: 'cpu'}, {value: '0'}] },
+          { hide: true,  collection: {value: 'dataloop_org'}, metric: [{value: 'base'}, {value: 'cpu'}, {value: '1'}] }
+        ]
+      });
+      expect(q).to.be.equal("SELECT 'base'.'cpu'.'0' FROM 'dataloop_org' BEFORE \"2016-01-10 11:20:00\" FOR 3600s");
+    });
+  });
+
 });
 
 function wrong_call(arg) {

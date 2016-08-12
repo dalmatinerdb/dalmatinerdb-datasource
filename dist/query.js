@@ -35,6 +35,12 @@ System.register(["lodash", "moment"], function (_export, _context) {
     }
   }
 
+  function _assert(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
   return {
     setters: [function (_lodash) {
       _ = _lodash.default;
@@ -179,8 +185,10 @@ System.register(["lodash", "moment"], function (_export, _context) {
       }();
 
       DalmatinerProjection = function () {
-        function DalmatinerProjection() {
+        function DalmatinerProjection(refId) {
           _classCallCheck(this, DalmatinerProjection);
+
+          this.refId = refId || '';
         }
 
         _createClass(DalmatinerProjection, [{
@@ -193,6 +201,12 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "shiftBy",
           value: function shiftBy(timeshift) {
             this.timeshift = timeshift;
+            return this;
+          }
+        }, {
+          key: "setVisibility",
+          value: function setVisibility(hidden) {
+            this.hidden = hidden;
             return this;
           }
         }, {
@@ -215,10 +229,10 @@ System.register(["lodash", "moment"], function (_export, _context) {
       DalmatinerFunction = function (_DalmatinerProjection) {
         _inherits(DalmatinerFunction, _DalmatinerProjection);
 
-        function DalmatinerFunction(fun, args, vars) {
+        function DalmatinerFunction(fun, args, vars, refId) {
           _classCallCheck(this, DalmatinerFunction);
 
-          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerFunction).call(this));
+          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerFunction).call(this, refId));
 
           _this.fun = fun;
           _this.args = args;
@@ -239,9 +253,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
             if (typeof arg === 'string' && arg[0] === '$') {
               var varname = arg.slice(1);
               arg = this.vars[varname];
-              if (_.isUndefined(arg)) {
-                throw new Error("Variable " + varname + " was not declared");
-              }
+              _assert(!_.isUndefined(arg), "Variable " + varname + " was not declared");
             }
             return '' + arg;
           }
@@ -253,16 +265,15 @@ System.register(["lodash", "moment"], function (_export, _context) {
       DalmatinerSelector = function (_DalmatinerProjection2) {
         _inherits(DalmatinerSelector, _DalmatinerProjection2);
 
-        function DalmatinerSelector(collection, metric, variables) {
+        function DalmatinerSelector(collection, metric, refId) {
           _classCallCheck(this, DalmatinerSelector);
 
-          var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerSelector).call(this));
+          var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerSelector).call(this, refId));
 
           _this2.collection = collection;
           _this2.metric = _.map(metric, function (mpart) {
             return mpart.value ? mpart.value : mpart.toString();
           });
-          _this2.variables = variables;
           return _this2;
         }
 
@@ -317,9 +328,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
           }
         }, {
           key: "select",
-          value: function select(m) {
-            if (!this.collection) throw new Error("You need to set collection (from statement) before selecting metric");
-            var selector = new DalmatinerSelector(this.collection, m);
+          value: function select(m, refId) {
+            _assert(this.collection, "You need to set collection (from statement) before selecting metric");
+            var selector = new DalmatinerSelector(this.collection, m, refId);
             this.selectors.push(selector);
             this.parts.push(selector);
             this.active = this.parts.length - 1;
@@ -346,9 +357,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "where",
           value: function where(condition) {
-            if (!condition instanceof DalmatinerQueryCondition) {
-              throw new Error("Invalid query condition");
-            }
+            _assert(condition instanceof DalmatinerQueryCondition, "Invalid query condition");
             this.selectors[this.active].where(condition);
             return this;
           }
@@ -365,23 +374,54 @@ System.register(["lodash", "moment"], function (_export, _context) {
             return this;
           }
         }, {
+          key: "setVisibility",
+          value: function setVisibility(hidden) {
+            this.parts[this.active].setVisibility(hidden);
+            return this;
+          }
+        }, {
           key: "apply",
           value: function apply(fun) {
             var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
-            if (_.isUndefined(this.active)) throw new Error("You need to select something before you can apply functions");
+            _assert(!_.isUndefined(this.active), "You need to select something before you can apply functions");
 
             var part = this.parts[this.active],
                 fargs = [part].concat(args),
-                f = new DalmatinerFunction(fun, fargs, this.variables);
+                f = new DalmatinerFunction(fun, fargs, this.variables, part.refId);
 
+            this.parts[this.active] = f;
+            return this;
+          }
+        }, {
+          key: "applyToSeries",
+          value: function applyToSeries(fun) {
+            var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+            var refId = arguments[2];
+
+            var refIdRegex = /#([A-Z])/;
+
+            _assert(!_.isUndefined(this.active), "You need to select something before you can apply functions");
+            _assert(refIdRegex.test(_.head(args)), "Invalid reference for series");
+
+            var targetRefId = refIdRegex.exec(_.head(args))[1],
+                part = this.parts[this.active],
+                refPart = _.find(this.parts, function (p) {
+              return p.refId === targetRefId;
+            }),
+                fargs = [],
+                f = null;
+
+            _assert(!_.isUndefined(refPart), "Invalid reference for series");
+
+            fargs = [part].concat(refPart), f = new DalmatinerFunction(fun, fargs, this.variables, part.refId);
             this.parts[this.active] = f;
             return this;
           }
         }, {
           key: "toString",
           value: function toString() {
-            return this.toUserString() + ' ' + this._encodeRange();
+            if (!this._visibleParts().length) return '';else return this.toUserString() + ' ' + this._encodeRange();
           }
         }, {
           key: "toUserString",
@@ -398,8 +438,15 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "_encodeProjections",
           value: function _encodeProjections() {
-            return this.parts.map(function (p) {
+            return this._visibleParts().map(function (p) {
               return p.encode();
+            });
+          }
+        }, {
+          key: "_visibleParts",
+          value: function _visibleParts() {
+            return _.filter(this.parts, function (p) {
+              return !p.hidden;
             });
           }
         }], [{
