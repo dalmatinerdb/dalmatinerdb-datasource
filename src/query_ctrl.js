@@ -110,14 +110,14 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   addFunction(category, newFunc) {
 
     var {functions} = this.target,
-        name = this.new_func.value,
-        info = this._getFunctionOption(category.text, newFunc.value),
+        info = this._getFunctionOption(category.text, newFunc.text),
         defaults = _.map(info.spec, function(s) {
           return s.default || '';
         });
 
     functions.push({
       name: info.name,
+      category: category.text,
       fun: info.fun,
       args: defaults,
       spec: info.spec
@@ -196,7 +196,7 @@ export class DalmatinerQueryCtrl extends QueryCtrl {
   _buildFunctionsDropdown(infos) {
     let menu =
       _.reduce(infos, (memo, info) => {
-        let newMenuItem = {text: info.fun, value: info.fun};
+        let newMenuItem = {text: info.name, value: info.fun};
 
         if (memo[info.category]) {
           memo[info.category].submenu.push(newMenuItem);

@@ -3,7 +3,7 @@
 System.register(["lodash", "./query"], function (_export, _context) {
   "use strict";
 
-  var _, DalmatinerQuery, _slicedToArray, _createClass, DalmatinerDatasource;
+  var _, DalmatinerQuery, _slicedToArray, _createClass, SERIES, COMBINE, ARITHMETIC, AGGREGATE, TRANSFORM, DalmatinerDatasource;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -30,15 +30,16 @@ System.register(["lodash", "./query"], function (_export, _context) {
   }
 
   function decode_function_table(res) {
-    var funTable = res.data.map(function (fun) {
+
+    var funTable = flatMap(res.data, function (fun) {
       if (fun.combiner_type !== 'none') {
-        return { category: 'Combine', name: fun.name, fun: fun.name, spec: [] };
+        return [{ category: COMBINE, name: fun.name, fun: fun.name, spec: [] }, { category: SERIES, name: fun.name, fun: fun.name, spec: [{ type: 'text', default: '#A' }] }];
       } else if (_.isEqual(fun.signature, ['metric'])) {
-        return { category: 'Transform', name: fun.name, fun: fun.name, spec: [] };
+        return { category: TRANSFORM, name: fun.name, fun: fun.name, spec: [] };
       } else if (_.isEqual(fun.signature, ['metric', 'time'])) {
-        return { category: 'Aggregate', name: fun.name, fun: fun.name, spec: [{ type: 'time', default: '$interval' }] };
+        return { category: AGGREGATE, name: fun.name, fun: fun.name, spec: [{ type: 'time', default: '$interval' }] };
       } else {
-        return { category: 'Arithmetic', name: fun.name, fun: fun.name, spec: [{ type: 'number', default: '1' }] };
+        return { category: ARITHMETIC, name: fun.name, fun: fun.name, spec: [{ type: 'number', default: '1' }] };
       }
     });
 
@@ -138,15 +139,17 @@ System.register(["lodash", "./query"], function (_export, _context) {
   }
 
   function queryFields(q, fields) {
-    if (fields.hide) return q;
-
-    q.from(fields.collection).select(fields.metric);
+    q.from(fields.collection).select(fields.metric, fields.refId);
 
     if (!_.isEmpty(fields.tags)) {
       q.where(buildCondition(fields.tags));
     }
     _.each(fields.functions, function (fn) {
-      q.apply(fn.fun || fn.name, fn.args);
+      if (fn.category === SERIES) {
+        q.applyToSeries(fn.fun || fn.name, fn.args, fields.refId);
+      } else {
+        q.apply(fn.fun || fn.name, fn.args, fields.refId);
+      }
     });
 
     if (!_.isEmpty(fields.alias)) {
@@ -155,6 +158,10 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
     if (!_.isEmpty(fields.timeshift)) {
       q.shiftBy(fields.timeshift);
+    }
+
+    if (_.isBoolean(fields.hide)) {
+      q.setVisibility(fields.hide);
     }
 
     return q;
@@ -244,6 +251,10 @@ System.register(["lodash", "./query"], function (_export, _context) {
       throw new Error(message);
     }
   }
+
+  function flatMap(col, f) {
+    return _.chain(col).map(f).flatten().value();
+  }
   return {
     setters: [function (_lodash) {
       _ = _lodash.default;
@@ -306,6 +317,12 @@ System.register(["lodash", "./query"], function (_export, _context) {
           return Constructor;
         };
       }();
+
+      SERIES = 'Series';
+      COMBINE = 'Combine';
+      ARITHMETIC = 'Arithmetic';
+      AGGREGATE = 'Aggregate';
+      TRANSFORM = 'Transform';
 
       _export("DalmatinerDatasource", DalmatinerDatasource = function () {
         function DalmatinerDatasource(instanceSettings, $q, backendSrv) {
