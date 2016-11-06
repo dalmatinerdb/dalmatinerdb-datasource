@@ -166,10 +166,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "_encodeTag",
           value: function _encodeTag(_ref) {
-            var _ref2 = _slicedToArray(_ref, 2);
-
-            var ns = _ref2[0];
-            var key = _ref2[1];
+            var _ref2 = _slicedToArray(_ref, 2),
+                ns = _ref2[0],
+                key = _ref2[1];
 
             return ns ? ns + ":'" + key + "'" : "'" + key + "'";
           }
@@ -218,7 +217,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         function DalmatinerFunction(fun, args, vars) {
           _classCallCheck(this, DalmatinerFunction);
 
-          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerFunction).call(this));
+          var _this = _possibleConstructorReturn(this, (DalmatinerFunction.__proto__ || Object.getPrototypeOf(DalmatinerFunction)).call(this));
 
           _this.fun = fun;
           _this.args = args;
@@ -256,7 +255,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         function DalmatinerSelector(collection, metric, variables) {
           _classCallCheck(this, DalmatinerSelector);
 
-          var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerSelector).call(this));
+          var _this2 = _possibleConstructorReturn(this, (DalmatinerSelector.__proto__ || Object.getPrototypeOf(DalmatinerSelector)).call(this));
 
           _this2.collection = collection;
           _this2.metric = _.map(metric, function (mpart) {
@@ -367,7 +366,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "apply",
           value: function apply(fun) {
-            var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+            var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
             if (_.isUndefined(this.active)) throw new Error("You need to select something before you can apply functions");
 

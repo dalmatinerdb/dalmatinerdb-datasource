@@ -13,18 +13,19 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
   // Decode data coming from Dalmatiner
   function decode_series(res) {
-    var _res$data = res.data;
-    var s = _res$data.s;
-    var d = _res$data.d;
-    var start = s * 1000;
-    return { data: (d || []).map(function (_ref9) {
-        var n = _ref9.n;
-        var v = _ref9.v;
-        var r = _ref9.r;
+    var _res$data = res.data,
+        start = _res$data.start,
+        results = _res$data.results,
+        start = start * 1000;
+
+    return { data: (results || []).map(function (_ref9) {
+        var name = _ref9.name,
+            values = _ref9.values,
+            resolution = _ref9.resolution;
 
         return {
-          target: n.replace(/'/g, ""),
-          datapoints: timestampPoints(v, start, r)
+          target: name.replace(/'/g, ""),
+          datapoints: timestampPoints(values, start, resolution)
         };
       }) };
   }
@@ -74,9 +75,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
     try {
       for (var _iterator3 = res.data[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var _step3$value = _step3.value;
-        var key = _step3$value.key;
-        var parts = _step3$value.parts;
+        var _step3$value = _step3.value,
+            key = _step3$value.key,
+            parts = _step3$value.parts;
 
         var n = root;
         var _iteratorNormalCompletion4 = true;
@@ -351,11 +352,12 @@ System.register(["lodash", "./query"], function (_export, _context) {
         }, {
           key: "getQuery",
           value: function getQuery(options) {
-            var range = options.range;
-            var interval = options.interval;
-            var targets = options.targets;
-            var q = new DalmatinerQuery();
-            var auto_interval;
+            var range = options.range,
+                interval = options.interval,
+                targets = options.targets,
+                q = new DalmatinerQuery(),
+                auto_interval;
+
 
             if (targets.length <= 0) return null;
 
@@ -433,10 +435,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
           value: function getTagValues(_ref3, tag) {
             var collection = _ref3.collection;
 
-            var _tag = _slicedToArray(tag, 2);
-
-            var namespace = _tag[0];
-            var key = _tag[1];
+            var _tag = _slicedToArray(tag, 2),
+                namespace = _tag[0],
+                key = _tag[1];
 
             if (namespace == 'dl' && key == 'tag') return this.getLabelTagValues({ collection: collection });else return this.getTrueTagValues({ collection: collection }, tag);
           }
@@ -453,10 +454,9 @@ System.register(["lodash", "./query"], function (_export, _context) {
           value: function getTrueTagValues(_ref5, _ref6) {
             var collection = _ref5.collection;
 
-            var _ref7 = _slicedToArray(_ref6, 2);
-
-            var namespace = _ref7[0];
-            var key = _ref7[1];
+            var _ref7 = _slicedToArray(_ref6, 2),
+                namespace = _ref7[0],
+                key = _ref7[1];
 
             var c = collection.value,
                 p = "/collections/" + c + "/namespaces/" + namespace + "/tags/" + key + "/values";
@@ -466,7 +466,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
           key: "getMetrics",
           value: function getMetrics(_ref8) {
             var collection = _ref8.collection;
-            var prefix = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+            var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
             return this._request('/collections/' + collection.value + '/metrics').then(decodeMetrics).then(function (root) {
               var n = root;

@@ -66,7 +66,7 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         function DalmatinerQueryCtrl($scope, $injector, uiSegmentSrv, $q) {
           _classCallCheck(this, DalmatinerQueryCtrl);
 
-          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DalmatinerQueryCtrl).call(this, $scope, $injector));
+          var _this = _possibleConstructorReturn(this, (DalmatinerQueryCtrl.__proto__ || Object.getPrototypeOf(DalmatinerQueryCtrl)).call(this, $scope, $injector));
 
           _this.$q = $q;
           _this.uiSegmentSrv = uiSegmentSrv;
@@ -120,9 +120,10 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         }, {
           key: 'getTagOptionsAt',
           value: function getTagOptionsAt(index) {
-            var seg = this.target.tags[index];
-            var type = seg.type;
-            var tagKeyValue;
+            var seg = this.target.tags[index],
+                type = seg.type,
+                tagKeyValue;
+
 
             switch (type) {
               case 'key':
@@ -150,11 +151,12 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         }, {
           key: 'addTag',
           value: function addTag() {
-            var _new_tag = this.new_tag;
-            var html = _new_tag.html;
-            var value = _new_tag.value;
-            var tags = this.target.tags;
-            var key = this.uiSegmentSrv.newKey(value);
+            var _new_tag = this.new_tag,
+                html = _new_tag.html,
+                value = _new_tag.value,
+                tags = this.target.tags,
+                key = this.uiSegmentSrv.newKey(value);
+
 
             key.html = html;
             if (tags.length > 0) tags.push(this.getTagConditions()[0]);
@@ -175,12 +177,13 @@ System.register(['./func_editor', './metric_segment', 'lodash', 'app/plugins/sdk
         }, {
           key: 'addFunction',
           value: function addFunction(category, newFunc) {
-            var functions = this.target.functions;
-            var name = this.new_func.value;
-            var info = this._getFunctionOption(category.text, newFunc.value);
-            var defaults = _.map(info.spec, function (s) {
+            var functions = this.target.functions,
+                name = this.new_func.value,
+                info = this._getFunctionOption(category.text, newFunc.value),
+                defaults = _.map(info.spec, function (s) {
               return s.default || '';
             });
+
 
             functions.push({
               name: info.name,

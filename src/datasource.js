@@ -176,12 +176,12 @@ export class DalmatinerDatasource {
 
 // Decode data coming from Dalmatiner
 function decode_series(res) {
-  var {s, d} = res.data,
-      start = s * 1000;
-  return {data: (d || []).map(({n, v, r}) => {
+  var {start, results} = res.data,
+      start = start * 1000;
+  return {data: (results || []).map(({name, values, resolution}) => {
     return {
-      target: n.replace(/'/g, ""),
-      datapoints: timestampPoints(v, start, r)
+      target: name.replace(/'/g, ""),
+      datapoints: timestampPoints(values, start, resolution)
     };
   })};
 }
