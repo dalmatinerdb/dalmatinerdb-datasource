@@ -19,8 +19,8 @@ describe('DalmatinerDatasource', function() {
     it('should create a query for requested target fields', function() {
       var q = ds.getQuery({
         range: {
-          from: moment("2016-01-10T10:20:00"),
-          to: moment("2016-01-10T11:20:00")},
+          from: moment("2016-01-10T10:20:00Z"),
+          to: moment("2016-01-10T11:20:00Z")},
         targets: [{
           collection: {value: 'dataloop_org'},
           metric: [{value: 'base'}, {value: 'cpu'}]}]
