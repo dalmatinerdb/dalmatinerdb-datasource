@@ -326,12 +326,30 @@ System.register(["lodash", "./query"], function (_export, _context) {
          * Datasource api methods
          * ---------------------- */
 
-        // used by panels to get data
-
 
         _createClass(DalmatinerDatasource, [{
+          key: "metricFindQuery",
+          value: function metricFindQuery(q) {
+            var _q$split = q.split("/"),
+                _q$split2 = _slicedToArray(_q$split, 2),
+                collection = _q$split2[0],
+                nt = _q$split2[1];
+
+            var _nt$split = nt.split(":"),
+                _nt$split2 = _slicedToArray(_nt$split, 2),
+                namespace = _nt$split2[0],
+                tag = _nt$split2[1];
+
+            return this._request('/collections/' + collection + '/namespaces/' + namespace + '/tags/' + tag + '/values').then(function (results) {
+              return _.map(results.data, function (e) {
+                return { text: e };
+              });
+            });
+          }
+        }, {
           key: "query",
-          value: function query(options) {
+          value: function query(options, bla) {
+            console.log("this", this);
             var query = this.getQuery(options);
 
             if (!query) return this.$q.resolve({ data: [] });
@@ -358,6 +376,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
                 q = new DalmatinerQuery(),
                 auto_interval;
 
+            console.log(options);
 
             if (targets.length <= 0) return null;
 

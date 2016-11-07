@@ -18,9 +18,22 @@ export class DalmatinerDatasource {
   /*
    * Datasource api methods
    * ---------------------- */
-
+  metricFindQuery(q) {
+    var [collection, nt] = q.split("/");
+    var [namespace, tag] = nt.split(":");
+    return this._request('/collections/' + collection +
+                         '/namespaces/' + namespace +
+                         '/tags/' + tag +
+                         '/values')
+           .then(function(results) {
+             return _.map(results.data, function(e) {
+                      return {text: e};
+                    });
+           });
+  }
   // used by panels to get data
-  query(options) {
+  query(options, bla) {
+    console.log("this", this)
     var query = this.getQuery(options);
 
     if (! query)
@@ -46,6 +59,7 @@ export class DalmatinerDatasource {
     var {range, interval, targets} = options,
         q = new DalmatinerQuery(),
         auto_interval;
+    console.log(options)
 
     if (targets.length <= 0)
       return null;
