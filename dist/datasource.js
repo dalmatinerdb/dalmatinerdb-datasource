@@ -342,7 +342,8 @@ System.register(["lodash", "./query"], function (_export, _context) {
 
             return this._request('/collections/' + collection + '/namespaces/' + namespace + '/tags/' + tag + '/values').then(function (results) {
               return _.map(results.data, function (e) {
-                return { text: e };
+                return { text: e,
+                  expandable: true };
               });
             });
           }
