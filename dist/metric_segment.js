@@ -58,7 +58,7 @@ System.register(['lodash', 'jquery', 'angular'], function (_export, _context) {
               }
 
               $scope.$apply(function () {
-                var selected = _.findWhere($scope.altSegments, { value: value });
+                var selected = _.find($scope.altSegments, { value: value });
                 if (selected) {
                   segment.value = selected.value;
                   segment.html = selected.html;
