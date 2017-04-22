@@ -52,7 +52,7 @@ mod.directive('dalmatinerMetricSegment', function($compile, $sce) {
           }
 
           $scope.$apply(function() {
-            var selected = _.findWhere($scope.altSegments, { value: value });
+            var selected = _.find($scope.altSegments, { value: value });
             if (selected) {
               segment.value = selected.value;
               segment.html = selected.html;
