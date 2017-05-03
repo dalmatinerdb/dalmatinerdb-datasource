@@ -1,6 +1,6 @@
 {
   "name": "dalmatinerdb-datasource",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "'DalamtinerDB datasource for Grafana'",
   "main": "index.js",
   "scripts": {
