@@ -13,6 +13,10 @@
   "annotations": false,
 
   "info": {
+    "logos": {
+      "small": "https://dalmatiner.io/images/logo.png",
+      "large": "https://dalmatiner.io/images/logo.png"
+    },
     "description": "DalmaterinDB Datasource",
     "author": {
       "name": "Dataloop.IO & Project-FiFo",
