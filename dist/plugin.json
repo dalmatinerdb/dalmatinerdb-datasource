@@ -13,20 +13,23 @@
   "annotations": false,
 
   "info": {
+    "logos": {
+      "small": "https://dalmatiner.io/images/logo.png",
+      "large": "https://dalmatiner.io/images/logo.png"
+    },
     "description": "DalmaterinDB Datasource",
     "author": {
-      "name": "Dataloop.IO",
-      "url": "https://dataloop.io"
+      "name": "Dataloop.IO & Project-FiFo",
+      "url": "https://dalmatiner.io"
     },
     "links": [
       {"name": "GitHub", "url": "https://github.com/dalmatinerdb/dalmatinerdb-datasource"}
     ],
-    "version": "0.3.0",
-    "updated": "2016-11-06"
+    "version": "1.0.0",
+    "updated": "2017-05-01"
   },
-
   "dependencies": {
-    "grafanaVersion": "3.x.x",
+    "grafanaVersion": "4.x.x",
     "plugins": []
   }
 }
