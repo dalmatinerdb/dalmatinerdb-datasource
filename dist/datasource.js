@@ -16,7 +16,7 @@ System.register(["lodash", "./query"], function (_export, _context) {
     var _res$data = res.data,
         start = _res$data.start,
         results = _res$data.results,
-        start = start * 1000;
+        start = start;
 
     return { data: (results || []).map(function (_ref9) {
         var name = _ref9.name,

@@ -177,7 +177,7 @@ export class DalmatinerDatasource {
 // Decode data coming from Dalmatiner
 function decode_series(res) {
   var {start, results} = res.data,
-      start = start * 1000;
+      start = start;
   return {data: (results || []).map(({name, values, resolution}) => {
     return {
       target: name.replace(/'/g, ""),
